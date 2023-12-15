@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 142.1 76.2% 36.3%;
+    --radius: 0.5rem;
+  }
+
+  [color-scheme="dark"] {
+    --background: 20 14.3% 4.1%;
+    --foreground: 0 0% 95%;
+    --card: 24 9.8% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 142.1 70.6% 45.3%;
+    --primary-foreground: 144.9 80.4% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 12 6.5% 15.1%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 142.4 71.8% 29.2%;
+  }
+}
+
+/*
+ Using plugin because UiWebView report false values;
+ even the plugin can report bad values; using only top and bottom for now
+ TODO: check how react native does this correctly
+:root {
+  --css-safe-area-inset-top: env(safe-area-inset-top);
+  --css-safe-area-inset-bottom: env(safe-area-inset-bottom);
+  --css-safe-area-inset-left: env(safe-area-inset-left);
+  --css-safe-area-inset-right: env(safe-area-inset-right);
+}
+*/
+
+html {
+  height: 100svh;
+  background-color: hsl(var(--background));
+  /* padding-top: var(--safe-area-inset-top); */
+  padding-bottom: var(--safe-area-inset-bottom);
+  /* padding-left: var(--safe-area-inset-left); */
+  /* padding-right: var(--safe-area-inset-right); */
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+#inset-top {
+  height: var(--safe-area-inset-top);
+  background-color: hsl(var(--foreground));
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+}
+
+/* Using default tailwind typography theme */
+@layer components {
+  .tiptap-editor {
+    @apply flex flex-col w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground;
+  }
+
+  .tiptap-editor:not(
+      .readOnly,
+      [aria-disabled="true"],
+      :disabled
+    ):focus-within {
+    @apply ring-2 ring-ring ring-offset-2;
+  }
+
+  .tiptap-editor[aria-disabled="true"] {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  .tiptap p.is-editor-empty:first-child::before {
+    color: hsl(var(--foreground));
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .tiptap-wrapper > div {
+    color: var(hsl(--foreground));
+    @apply prose prose-sm outline-none;
+  }
+
+  .tiptap-menubar {
+    border-bottom: 1px solid hsl(var(--input));
+  }
+
+  .tiptap-menubar > button {
+    @apply w-8 h-8;
+  }
+
+  .tiptap-menubar > button.active {
+    @apply bg-foreground text-background;
+  }
+
+  .tiptap-menubar > button > svg {
+    @apply w-4 h-4;
+  }
+
+  .tiptap-html {
+    @apply rounded-md prose prose-sm outline-none;
+  }
+
+  .ellipsis {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .invisible-scroll {
+    -ms-overflow-style: none; /* for Internet Explorer, Edge */
+    scrollbar-width: none; /* for Firefox */
+  }
+
+  .invisible-scroll::-webkit-scrollbar {
+    display: none; /* for Chrome, Safari, and Opera */
+  }
+}
