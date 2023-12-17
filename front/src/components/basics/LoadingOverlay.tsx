@@ -2,10 +2,12 @@ import { Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+import Overlay from "./Overlay";
+
 const LoadingOverlay = ({ className = "" }) => (
-  <div className="fixed inset-0 flex justify-center items-center">
+  <Overlay>
     <Loader2 className={cn("h-4 w-4 animate-spin", className)} />
-  </div>
+  </Overlay>
 );
 
 export default LoadingOverlay;

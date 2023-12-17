@@ -10,8 +10,8 @@ import {
 import { useVisits } from "@/providers/VisitsProvider";
 import { findById } from "@/utils/array";
 
-import Dialog from "../Dialog";
-import Tooltip from "../Tooltip";
+import Dialog from "../basics/Dialog";
+import Tooltip from "../basics/Tooltip";
 
 const ViewDialog = ({
   open,

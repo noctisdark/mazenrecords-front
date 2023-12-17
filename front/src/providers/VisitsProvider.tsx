@@ -119,6 +119,8 @@ const VisitsProvider = ({ children }) => {
         }
       }
     })();
+    // visitsContext changes by reference but is semantically the same
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dbReady]);
 
   return (

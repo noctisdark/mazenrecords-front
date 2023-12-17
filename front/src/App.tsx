@@ -1,34 +1,48 @@
 import "index.css";
-import React from "react";
+import { useEffect } from "react";
 
+import Main from "@/components/app/Main";
 import { Toaster } from "@/components/ui/toaster";
+import BrandsProvider from "@/providers/BrandsProvider";
 import IndexedDBProvider from "@/providers/IndexedDBProvider";
 import IntlProvider from "@/providers/IntlProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
 import TooltipProvider from "@/providers/TooltipProvider";
+import VisitsProvider from "@/providers/VisitsProvider";
 
-import Main from "./components/app/Routes/Main";
-import BrandsProvider from "./providers/BrandsProvider";
-import VisitsProvider from "./providers/VisitsProvider";
+import { useSafeAreaInsets } from "./utils/screen";
+import AuthProvider from "./providers/AuthProvider";
 
 const App = () => {
+  const safeAreaInsets = useSafeAreaInsets();
+
+  useEffect(() => {
+    if (!safeAreaInsets) return;
+    for (const [key, value] of Object.entries(safeAreaInsets)) {
+      document.documentElement.style.setProperty(
+        `--safe-area-inset-${key}`,
+        `${value}px`,
+      );
+    }
+  }, [safeAreaInsets]);
+
   return (
-    <React.StrictMode>
+    <ThemeProvider>
       <IntlProvider>
-        <ThemeProvider>
-          <TooltipProvider>
+        <TooltipProvider>
+          <AuthProvider>
             <IndexedDBProvider>
               <VisitsProvider>
                 <BrandsProvider>
                   <Main />
-                  <Toaster />
                 </BrandsProvider>
               </VisitsProvider>
             </IndexedDBProvider>
-          </TooltipProvider>
-        </ThemeProvider>
+          </AuthProvider>
+        </TooltipProvider>
       </IntlProvider>
-    </React.StrictMode>
+      <Toaster />
+    </ThemeProvider>
   );
 };
 

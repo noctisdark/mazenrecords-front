@@ -27,10 +27,10 @@ import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
 import { findById } from "@/utils/array";
 
-import { Autocomplete } from "../Autocomplete";
-import Dialog from "../Dialog";
-import Popover from "../Popover";
-import TextEditor from "../TextEditor";
+import { Autocomplete } from "../basics/Autocomplete";
+import Dialog from "../basics/Dialog";
+import Popover from "../basics/Popover";
+import TextEditor from "../basics/TextEditor";
 
 //TODO polish the brand/model logic and maybe discuss with hazem
 //TODO refactor this shit
@@ -48,7 +48,7 @@ const UpsertDialog = ({
   onView: (id: number) => void;
   visitId: number | null;
 }) => {
-  const { brands, upsert, add: addBrand, upsertModel } = useBrands();
+  const { brands, add: addBrand, upsertModel } = useBrands();
   const [calendarIsOpen, setCalendarIsOpen] = useState(false);
   const {
     visits,
@@ -99,7 +99,7 @@ const UpsertDialog = ({
       brands
         .find((item) => item.name === chosenBrand)
         ?.models.map((model) => ({ value: model, label: model })) || [],
-    [chosenBrand],
+    [brands, chosenBrand],
   );
 
   useEffect(() => {
@@ -109,6 +109,7 @@ const UpsertDialog = ({
       setChosenBrand(visit?.brand || "");
     }
     // uncontrolled components lose value when unrendered; exactly what we want
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const onSubmit = async () => {
@@ -125,11 +126,11 @@ const UpsertDialog = ({
         if (!modelOptions.find((option) => option.value === chosenModel))
           await upsertModel(foundBrand, chosenModel);
       }
-    } catch (e: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error adding brand / model",
-        description: e.toString() || "",
+        description: String(error),
       });
     }
 
@@ -147,11 +148,11 @@ const UpsertDialog = ({
         else result = await replace(updatedVisit);
       } else result = await add(updatedVisit);
       onView(result.id);
-    } catch (e: any) {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error adding visit",
-        description: e.toString() || "",
+        description: String(error),
       });
     }
   };

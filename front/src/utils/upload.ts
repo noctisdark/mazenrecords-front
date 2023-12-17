@@ -28,7 +28,9 @@ export const appStateFromCSV = (csv: string) => {
   if (tables.length < 2)
     alert("Warning: The file uploaded is missing some data");
   if (tables.length > 2)
-    throw `Invalid saved state: probably because "${tableGlue}" is used somewhere.`;
+    throw new Error(
+      `Invalid saved state: probably because "${tableGlue}" is used somewhere.`,
+    );
 
   const visits = csvToVisits(tables[0]);
   const brands = csvToBrands(tables[1] || "");

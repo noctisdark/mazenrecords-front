@@ -9,9 +9,9 @@ import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
 import { getAppStateUpdates } from "@/utils/upload";
 
-import Dialog from "../Dialog";
-import LoadingOverlay from "../LoadingOverlay";
-import Tooltip from "../Tooltip";
+import Dialog from "../basics/Dialog";
+import LoadingOverlay from "../basics/LoadingOverlay";
+import Tooltip from "../basics/Tooltip";
 
 const UploadDialog = ({
   open,
@@ -45,7 +45,7 @@ const UploadDialog = ({
     } catch (error: any) {
       return [null, error];
     }
-  }, [visits, fileData]);
+  }, [visits, brands, fileData]);
 
   const [saving, setSaving] = useState(false);
 

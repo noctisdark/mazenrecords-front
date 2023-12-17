@@ -3,5 +3,6 @@
     <string name="app_name">mazensapp</string>
     <string name="title_activity_main">mazensapp</string>
     <string name="package_name">dev.mazensapp.app</string>
-    <string name="custom_url_scheme">dev.vists.app</string>
+    <string name="custom_url_scheme">https</string>
+    <string name="custom_url_host">localhost</string>
 </resources>

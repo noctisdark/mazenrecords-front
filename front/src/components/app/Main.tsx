@@ -1,17 +1,16 @@
 import { AlertCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import { DataTable, columns } from "@/components/app/Table";
+import { DataTable, columns } from "@/components/basics/Table";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import SimpleLayout from "@/layouts/SimpleLayout";
 import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
 import { readFile, writeFile } from "@/utils/files";
-import { useSafeAreaInsets } from "@/utils/screen";
 import { appStateToCSV } from "@/utils/upload";
 
-import LoadingOverlay from "../LoadingOverlay";
+import LoadingOverlay from "../basics/LoadingOverlay";
 import UploadDialog from "./UploadDialog";
 import UpsertDialog from "./UpsertDialog";
 import ViewDialog from "./ViewDialog";
@@ -19,7 +18,7 @@ import ViewDialog from "./ViewDialog";
 // Opening large files is a problem but shouldn't be visible before a long time
 // TODO: should find a way to cancel reading the file
 
-const Main = ({}) => {
+const Main = () => {
   const { error: visitsError, loading: visitsLoading, visits } = useVisits();
   const { error: brandsError, loading: brandsLoading, brands } = useBrands();
   const [fileUploading, setFileUploading] = useState(false);
@@ -31,21 +30,10 @@ const Main = ({}) => {
   const [isCreating, setIsCreating] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  const safeAreaInsets = useSafeAreaInsets();
   const { toast } = useToast();
 
   const loading = visitsLoading || brandsLoading;
   const error = visitsError || brandsError;
-
-  useEffect(() => {
-    if (!safeAreaInsets) return;
-    for (const [key, value] of Object.entries(safeAreaInsets)) {
-      document.documentElement.style.setProperty(
-        `--safe-area-inset-${key}`,
-        `${value}px`,
-      );
-    }
-  }, [safeAreaInsets]);
 
   if (loading) return <LoadingOverlay className="h-10 w-10" />;
   if (error)
