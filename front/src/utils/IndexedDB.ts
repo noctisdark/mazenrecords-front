@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-// decouple from react
+// TODO: decouple from react
 
 export const openDB = (
   name: string,
@@ -16,28 +16,15 @@ export const openDB = (
 };
 
 const initDB = (db: IDBDatabase) => {
-  const visitsTable = db.createObjectStore("visits", {
+  db.createObjectStore("visits", {
     keyPath: "id",
     autoIncrement: true,
   });
 
-  visitsTable.createIndex("date", "date", { unique: false });
-  visitsTable.createIndex("client", "client", { unique: false });
-  visitsTable.createIndex("contact", "contact", { unique: false });
-  visitsTable.createIndex("brand", "brand", { unique: false });
-  visitsTable.createIndex("model", "model", { unique: false });
-  visitsTable.createIndex("problem", "problem", { unique: false });
-  visitsTable.createIndex("fix", "fix", { unique: false });
-  visitsTable.createIndex("amount", "amount", { unique: false });
-  visitsTable.createIndex("updatedAt", "updatedAt", { unique: false });
-
-  const brandsTable = db.createObjectStore("brands", {
+  db.createObjectStore("brands", {
     keyPath: "id",
     autoIncrement: true,
   });
-
-  brandsTable.createIndex("name", "name", { unique: false });
-  brandsTable.createIndex("models", "models", { unique: false });
 };
 
 const useIndexedDB = () => {

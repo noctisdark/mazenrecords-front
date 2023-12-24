@@ -5,29 +5,34 @@ export type Model = string;
 export type Brand = {
   id: number;
   name: string;
-  models: Model[];
+  models: Set<Model>;
+  updatedAt?: number;
+  deleted?: boolean;
 };
 
-export const serializeBrand = (
+export const brandToCSVRow = (
   brand: Brand,
-): { [key in keyof Brand]: string | number | string[] | number[] } => {
+): {
+  [key in keyof Brand]: string | number | boolean | string[] | number[];
+} => {
   return {
     ...brand,
-    models: `${brand.models.join("|")}`,
+    models: `${[...brand.models].join("|")}`,
+    updatedAt: brand.updatedAt,
   };
 };
 
 export const toCSV = (array: Brand[]): string => {
-  const serializedVisits = array.map((visit) => serializeBrand(visit));
+  const serializedVisits = array.map((visit) => brandToCSVRow(visit));
   return Papa.unparse(serializedVisits);
 };
 
-export const deserializeFields = (brand: {
+export const CSVRowToBrand = (brand: {
   [key in keyof Brand]: string | number | string[] | number[];
 }): Brand => {
   return {
     ...brand,
-    models: (brand.models as string).split("|"),
+    models: new Set((brand.models as string).split("|")),
   } as Brand;
 };
 
@@ -38,27 +43,26 @@ export const parseCSV = (csv: string): Brand[] => {
     dynamicTyping: true,
   });
   if (meta.aborted || errors.length) throw "Cannot parse CSV";
-  return data.map(deserializeFields);
+  return data.map(CSVRowToBrand);
 };
 
-type BrandWithSetModels = {
-  id: number;
-  name: string;
-  models: Set<Model>;
-};
+export const brandToJSON = (brand: Brand) => ({
+  ...brand,
+  models: [...brand.models],
+});
+
+export const JSONToBrand = (brand: any): Brand => ({
+  ...brand,
+  models: new Set(brand.models),
+});
 
 export const computeUpdates = (
   savedBrands: Brand[],
   uploadedBrands: Brand[],
 ) => {
-  // merge by name
-
-  const reverseMap: { [key: string]: BrandWithSetModels } = {};
+  const reverseMap: { [key: string]: Brand } = {};
   for (const savedBrand of savedBrands)
-    reverseMap[savedBrand.id] = {
-      ...savedBrand,
-      models: new Set(savedBrand.models),
-    };
+    reverseMap[savedBrand.id] = savedBrand;
 
   for (const uploadedBrand of uploadedBrands) {
     if (reverseMap[uploadedBrand.name]) {
@@ -74,9 +78,6 @@ export const computeUpdates = (
   }
 
   return {
-    updatedBrands: Object.values(reverseMap).map((brand) => ({
-      ...brand,
-      models: [...brand.models],
-    })),
+    updatedBrands: Object.values(reverseMap),
   };
 };

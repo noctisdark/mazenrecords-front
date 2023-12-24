@@ -48,9 +48,8 @@ const BrandsProvider = ({ children }) => {
     upsertModel: async (brand: Brand, model: Model) => {
       const result = await upsert("brands", {
         ...brand,
-        models: brand.models.find((item) => item === model)
-          ? brand.models
-          : [...brand.models, model],
+        // immutable update
+        models: new Set(brand.models).add(model),
       });
 
       setBrands(upsertById(brands, result));

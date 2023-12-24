@@ -10,8 +10,8 @@ import ThemeProvider from "@/providers/ThemeProvider";
 import TooltipProvider from "@/providers/TooltipProvider";
 import VisitsProvider from "@/providers/VisitsProvider";
 
-import { useSafeAreaInsets } from "./utils/screen";
 import AuthProvider from "./providers/AuthProvider";
+import { useSafeAreaInsets } from "./utils/screen";
 
 const App = () => {
   const safeAreaInsets = useSafeAreaInsets();

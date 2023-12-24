@@ -1,5 +1,6 @@
 import { Axios, isAxiosError } from "axios";
 
+import { toCamelCase } from "@/utils/casing";
 import { getToken, revokeToken } from "@/utils/oauth";
 import { Optional } from "@/utils/types";
 
@@ -7,6 +8,7 @@ import { Optional } from "@/utils/types";
 declare module "axios" {
   export interface AxiosRequestConfig {
     authorization?: boolean;
+    retried?: boolean;
   }
 }
 
@@ -33,7 +35,7 @@ export type SimpleOAuthHandlerConfig = {
   /**
    * Handle login
    */
-  login: (instance: SimpleOAuthHandler) => Promise<SessionToken | void>;
+  login: (instance: SimpleOAuthHandler) => Promise<SessionToken>;
   /**
    * Determine if access token was invalid
    */
@@ -124,11 +126,14 @@ export class SimpleOAuthHandler extends EventTarget {
     axios.interceptors.response.use(null, async (error) => {
       if (
         isAxiosError(error) &&
+        error.config &&
+        !error.config.retried &&
         this.options.statusIsInvalidAccessToken(error.response?.status ?? 0) &&
         this.options.refreshOnInvalidAccessToken
       ) {
         await this.refreshToken();
-        return error.config && axios.request(error.config);
+        error.config.retried = true;
+        return axios.request(error.config);
       }
       return Promise.reject(error);
     });
@@ -142,7 +147,7 @@ export class SimpleOAuthHandler extends EventTarget {
     if (!force && this.accessTokenIsValid) return "LOGGED_IN";
 
     try {
-      const newTokens = await this.options.login(this);
+      const newTokens = toCamelCase(await this.options.login(this));
       if (newTokens)
         this.storeTokens(this.concatTokens(newTokens, this.tokens));
     } catch (error) {
@@ -163,12 +168,14 @@ export class SimpleOAuthHandler extends EventTarget {
     } else {
       // refresh token
       try {
-        const newTokens: SessionToken = await getToken({
-          serverURL: this.serverURL,
-          clientId: this.clientId,
-          grantType: "refresh_token",
-          refreshToken: this.tokens!.refreshToken!,
-        });
+        const newTokens: SessionToken = toCamelCase(
+          await getToken({
+            serverURL: this.serverURL,
+            clientId: this.clientId,
+            grantType: "refresh_token",
+            refreshToken: this.tokens!.refreshToken!,
+          }),
+        );
 
         this.storeTokens(this.concatTokens(newTokens, this.tokens));
       } catch (error) {

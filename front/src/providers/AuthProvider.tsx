@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { createContext, useContext, useEffect, useState } from "react";
 
+import api from "@/api";
 import LoadingOverlay from "@/components/basics/LoadingOverlay";
 import Overlay from "@/components/basics/Overlay";
 import { Button } from "@/components/ui/button";
@@ -19,14 +20,18 @@ type AuthContextType = {
 export const platform = Capacitor.getPlatform();
 
 const oauthHandler = new SimpleOAuthHandler(
-  "https://visits.auth.eu-west-3.amazoncognito.com",
-  "5o1sqp969ct6sqhv70bvkro0fj",
-  "https://wy4lkquvlb.execute-api.eu-west-3.amazonaws.com",
+  import.meta.env.VITE_DEV_AUTH_SERVER_URL!,
+  import.meta.env.VITE_DEV_CLIENT_ID!,
+  import.meta.env.VITE_DEV_API_ENDPOINT!,
   {
     login: platform === "android" ? androidLogin : webLogin,
   },
 );
 
+// install in api
+oauthHandler.hookIntoAxios(api);
+
+(window as any).api = api;
 (window as any).authHandler = oauthHandler;
 
 const AuthContext = createContext({});
@@ -94,7 +99,7 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    const onChange = (e) => {
+    const onChange = () => {
       setIsLoggedIn(oauthHandler.accessTokenIsValid);
       setHasRefreshToken(oauthHandler.refreshTokenIsValid);
     };

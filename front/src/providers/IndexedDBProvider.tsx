@@ -1,10 +1,7 @@
 import { createContext, useContext } from "react";
 
-import indexedDBImplementation from "@/IndexedDB";
+import indexedDBImplementation from "@/utils/IndexedDB";
 import { Optional } from "@/utils/types";
-
-// use IndexedDB
-useIndexedDB;
 
 type IndexedDBContextType<T extends { id: number }, Key = number> = {
   dbReady: boolean;

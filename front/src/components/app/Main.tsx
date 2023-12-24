@@ -7,8 +7,8 @@ import { useToast } from "@/components/ui/use-toast";
 import SimpleLayout from "@/layouts/SimpleLayout";
 import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
+import { stateToCSV } from "@/utils/csv";
 import { readFile, writeFile } from "@/utils/files";
-import { appStateToCSV } from "@/utils/upload";
 
 import LoadingOverlay from "../basics/LoadingOverlay";
 import UploadDialog from "./UploadDialog";
@@ -26,9 +26,11 @@ const Main = () => {
   const [fileData, setFileData] = useState<string>("");
   const [isViewing, setIsViewing] = useState(false);
   const [viewingId, setViewingId] = useState<number | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+
+  (window as any).visits = visits;
+  (window as any).brands = brands;
 
   const { toast } = useToast();
 
@@ -57,7 +59,7 @@ const Main = () => {
         columns={columns}
         data={visits}
         onDownloadClicked={async () => {
-          const csv = appStateToCSV({ visits, brands });
+          const csv = stateToCSV({ visits, brands });
           const suffix = new Date()
             .toLocaleString()
             .replace(/[/\\?%*:|"<>]/g, "-");
@@ -84,8 +86,7 @@ const Main = () => {
         }}
         onCreate={() => {
           setUpdatingId(null);
-          setIsUpdating(false);
-          setIsCreating(true);
+          setIsEditing(true);
         }}
         onView={(id: number) => {
           setIsViewing(true);
@@ -101,25 +102,22 @@ const Main = () => {
         onEdit={(id: number) => {
           // setIsViewing(false);
           setUpdatingId(id);
-          setIsUpdating(true);
+          setIsEditing(true);
         }}
         open={isViewing}
       />
 
       <UpsertDialog
         visitId={updatingId}
-        isUpdate={isUpdating}
         onClose={() => {
-          setIsUpdating(false);
-          setIsCreating(false);
+          setIsEditing(false);
         }}
         onView={(id: number) => {
-          setIsCreating(false);
-          setIsUpdating(false);
+          setIsEditing(false);
           setViewingId(id);
           setIsViewing(true);
         }}
-        open={isUpdating || isCreating}
+        open={isEditing}
       />
 
       <UploadDialog

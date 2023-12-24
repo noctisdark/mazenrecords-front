@@ -7,7 +7,7 @@ import { DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
-import { getAppStateUpdates } from "@/utils/upload";
+import { getUpdatesFromCSV } from "@/utils/csv";
 
 import Dialog from "../basics/Dialog";
 import LoadingOverlay from "../basics/LoadingOverlay";
@@ -31,7 +31,7 @@ const UploadDialog = ({
   const [stats, error] = useMemo(() => {
     try {
       if (fileData)
-        return [getAppStateUpdates({ visits, brands }, fileData), null];
+        return [getUpdatesFromCSV({ visits, brands }, fileData), null];
       return [
         {
           updatedBrands: brands,

@@ -1,23 +1,26 @@
 import * as Papa from "papaparse";
 import * as z from "zod";
 
+import { NumberOrEmptyString } from "@/utils/types";
+
 export type Visit = {
   id: number;
-  date: Date;
+  date: number;
   client: string;
   contact: string;
   brand: string;
   model: string;
   problem: string;
   fix: string;
-  amount: number | "";
-  updatedAt: Date;
+  amount: number;
+  updatedAt?: number;
+  deleted?: boolean;
 };
 
 export const VisitSchema = z.object({
   id: z.number({ required_error: "Reference number is required" }),
   date: z
-    .date({ required_error: "Date of visit is required" })
+    .date({ required_error: "Date of the visit is required" })
     .default(new Date()),
   client: z.string({ required_error: "Client's name is required" }).min(4),
   contact: z.string({ required_error: "Client's contact is required" }).min(4),
@@ -28,7 +31,9 @@ export const VisitSchema = z.object({
   amount: z.number().default(0),
 });
 
-export function createVisitForm(visitOrNextId: Visit | number): Visit {
+export type VisitForm = NumberOrEmptyString<z.infer<typeof VisitSchema>>;
+
+export function createVisitForm(visitOrNextId: Visit | number): VisitForm {
   return typeof visitOrNextId === "number"
     ? {
         id: visitOrNextId,
@@ -40,34 +45,33 @@ export function createVisitForm(visitOrNextId: Visit | number): Visit {
         problem: "",
         fix: "",
         amount: "",
-        updatedAt: new Date(),
       }
-    : { ...visitOrNextId, updatedAt: new Date() };
+    : { ...visitOrNextId, date: new Date() };
 }
 
-export const serializeVisit = (
+export const visitToCSVRow = (
   visit: Visit,
-): { [key in keyof Visit]: string | number | string[] | number[] } => {
+): {
+  [key in keyof Visit]?: string | number | boolean | string[] | number[];
+} => {
   return {
     ...visit,
-    date: +visit.date,
-    updatedAt: +visit.updatedAt,
+    date: visit.date,
+    updatedAt: visit.updatedAt,
   };
 };
 
 export const toCSV = (array: Visit[]): string => {
-  const serializedVisits = array.map((visit) => serializeVisit(visit));
+  const serializedVisits = array.map((visit) => visitToCSVRow(visit));
   return Papa.unparse(serializedVisits);
 };
 
-export const deserializeFields = (visit: {
+export const CSVRowToVisit = (visit: {
   [key in keyof Visit]: string | number | string[] | number[];
 }): Visit => {
   return {
     ...visit,
-    date: new Date(visit.date as number),
-    updatedAt: new Date(visit.updatedAt as number),
-    contact: visit.contact.toString(), // maybe not written as string
+    contact: visit.contact.toString(), // in case it isn't presented as a string
   } as Visit;
 };
 
@@ -81,8 +85,12 @@ export const parseCSV = (csv: string): Visit[] => {
   // use ref as ID
   return data
     .map(({ ref, ...item }) => ({ ...item, id: ref ?? item.id }))
-    .map(deserializeFields);
+    .map(CSVRowToVisit);
 };
+
+export const visitToJSON = (visit: Visit) => visit;
+
+export const JSONToVisit = (visit: Visit): Visit => visit;
 
 export const computeUpdates = (
   savedVisits: Visit[],
@@ -90,7 +98,8 @@ export const computeUpdates = (
 ) => {
   const reverseMap: { [key: number]: Visit } = {};
   const diffMap: { [key: number]: Visit } = {};
-  for (const savedVisit of savedVisits) reverseMap[savedVisit.id] = savedVisit;
+  for (const savedVisit of savedVisits)
+    reverseMap[savedVisit.id] = savedVisit;
 
   let newVisits = 0,
     appliedUpdates = 0,
@@ -102,7 +111,8 @@ export const computeUpdates = (
       diffMap[uploadedVisit.id] = uploadedVisit;
       newVisits++;
     } else if (
-      uploadedVisit.updatedAt > reverseMap[uploadedVisit.id].updatedAt
+      !uploadedVisit.updatedAt ||
+      uploadedVisit.updatedAt > reverseMap[uploadedVisit.id].updatedAt!
     ) {
       reverseMap[uploadedVisit.id] = uploadedVisit;
       diffMap[uploadedVisit.id] = uploadedVisit;

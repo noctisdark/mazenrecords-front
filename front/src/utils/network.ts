@@ -5,6 +5,8 @@ export const useNetworkStatus = () => {
     navigator.onLine ? "online" : "offline",
   );
 
+  const [forceOffline, setForceOffline] = useState(false);
+
   useEffect(() => {
     const onOnline = () => setStatus("online");
     const onOffline = () => setStatus("offline");
@@ -18,5 +20,5 @@ export const useNetworkStatus = () => {
     };
   }, []);
 
-  return status;
+  return [forceOffline ? "offline" : status, setForceOffline];
 };

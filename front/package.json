@@ -38,7 +38,6 @@
     "@trivago/prettier-plugin-sort-imports": "^4.3.0",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
-    "axios-case-converter": "^1.1.0",
     "capacitor-plugin-safe-area": "^2.0.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",

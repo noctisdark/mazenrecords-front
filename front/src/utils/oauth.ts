@@ -194,6 +194,6 @@ export const revokeToken = async ({
 
   const response = await api.post(url.href, params, { headers }),
     tokens = response.data;
-  
+
   return tokens;
 };

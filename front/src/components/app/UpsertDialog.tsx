@@ -22,7 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
-import { Visit, VisitSchema, createVisitForm } from "@/models/Visit";
+import { Visit, VisitForm, VisitSchema, createVisitForm } from "@/models/Visit";
 import { useBrands } from "@/providers/BrandsProvider";
 import { useVisits } from "@/providers/VisitsProvider";
 import { findById } from "@/utils/array";
@@ -37,18 +37,17 @@ import TextEditor from "../basics/TextEditor";
 
 const UpsertDialog = ({
   open,
-  isUpdate,
   onClose,
   onView,
   visitId = null,
 }: {
   open: boolean;
-  isUpdate: boolean;
   onClose: () => void;
   onView: (id: number) => void;
   visitId: number | null;
 }) => {
   const { brands, add: addBrand, upsertModel } = useBrands();
+
   const [calendarIsOpen, setCalendarIsOpen] = useState(false);
   const {
     visits,
@@ -74,7 +73,7 @@ const UpsertDialog = ({
     [brands],
   );
 
-  const form = useForm<Visit>({
+  const form = useForm<VisitForm>({
     mode: "onBlur",
     resolver: zodResolver(
       VisitSchema.refine(
@@ -94,16 +93,19 @@ const UpsertDialog = ({
   const fixTextRef = useRef<Editor | null>(null);
   const [chosenBrand, setChosenBrand] = useState(visit?.brand || "");
 
-  const modelOptions = useMemo(
-    () =>
-      brands
-        .find((item) => item.name === chosenBrand)
-        ?.models.map((model) => ({ value: model, label: model })) || [],
-    [brands, chosenBrand],
-  );
+  const modelOptions = useMemo(() => {
+    const brand = brands.find((item) => item.name === chosenBrand);
+    return (
+      (brand &&
+        [...brand.models].map((model) => ({ value: model, label: model }))) ||
+      []
+    );
+  }, [brands, chosenBrand]);
 
+  const [openedAsUpdate, setOpenedAsUpdate] = useState(false);
   useEffect(() => {
     if (open) {
+      setOpenedAsUpdate(visitId !== null);
       form.reset(createVisitForm(visit ?? nextVisitId));
       setCalendarIsOpen(false);
       setChosenBrand(visit?.brand || "");
@@ -119,7 +121,7 @@ const UpsertDialog = ({
       const foundBrand = brands.find((brand) => brand.name === chosenBrand);
       if (!foundBrand) {
         await addBrand({
-          models: [chosenModel],
+          models: new Set([chosenModel]),
           name: chosenBrand,
         });
       } else {
@@ -135,14 +137,16 @@ const UpsertDialog = ({
     }
 
     try {
-      const updatedVisit: Visit = {
-        ...form.getValues(),
+      const formValues = form.getValues();
+      const updatedVisit = {
+        ...formValues,
+        date: +formValues.date,
         problem: problemTextRef.current!.getHTML(),
         fix: fixTextRef.current!.getHTML(),
-      };
+      } as Visit; // after validation
 
       let result: Visit;
-      if (isUpdate) {
+      if (openedAsUpdate) {
         if (form.getValues().id !== visitId)
           result = await move(visitId!, updatedVisit);
         else result = await replace(updatedVisit);
@@ -157,16 +161,14 @@ const UpsertDialog = ({
     }
   };
 
-  if (isUpdate && !visit) throw new Error("updating no visit");
-
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogHeader>
-        <DialogTitle>
-          {isUpdate ? "Update a visit" : "Register a new visit"}
-        </DialogTitle>
-      </DialogHeader>
-      <Form {...form}>
+    <Form {...form}>
+      <Dialog open={open} onClose={onClose}>
+        <DialogHeader>
+          <DialogTitle>
+            {openedAsUpdate ? "Update a visit" : "Register a new visit"}
+          </DialogTitle>
+        </DialogHeader>
         <form
           onSubmit={(e) => e.preventDefault()}
           className="flex flex-col gap-y-2"
@@ -355,13 +357,13 @@ const UpsertDialog = ({
             )}
           />
         </form>
-      </Form>
-      <DialogFooter>
-        <Button onClick={form.handleSubmit(onSubmit)} type="submit">
-          {isUpdate ? "Update" : "Create"}
-        </Button>
-      </DialogFooter>
-    </Dialog>
+        <DialogFooter>
+          <Button onClick={form.handleSubmit(onSubmit)} type="submit">
+            {openedAsUpdate ? "Update" : "Create"}
+          </Button>
+        </DialogFooter>
+      </Dialog>
+    </Form>
   );
 };
 

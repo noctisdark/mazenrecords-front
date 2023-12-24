@@ -13,11 +13,11 @@ import {
 
 const tableGlue = "\n----------1fy0uwr1737h15y0uw1llbr34k7h34pp----------\n";
 
-export const appStateToCSV = ({ visits, brands }) => {
+export const stateToCSV = ({ visits, brands }) => {
   return visitsToCSV(visits) + tableGlue + brandsToCSV(brands);
 };
 
-export const appStateFromCSV = (csv: string) => {
+export const getStateFromCSV = (csv: string) => {
   if (!csv)
     return {
       visits: [],
@@ -40,12 +40,12 @@ export const appStateFromCSV = (csv: string) => {
   };
 };
 
-export const getAppStateUpdates = (
+export const getUpdatesFromCSV = (
   { visits, brands }: { visits: Visit[]; brands: Brand[] },
   csv: string,
 ) => {
   const { visits: uploadedVisits, brands: uploadedBrands } =
-    appStateFromCSV(csv);
+    getStateFromCSV(csv);
   return {
     ...computeUpdatedVisits(visits, uploadedVisits),
     ...computeUpdatedBrands(brands, uploadedBrands),
