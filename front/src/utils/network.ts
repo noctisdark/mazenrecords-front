@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 
-export const useNetworkStatus = () => {
+export const useNetworkStatus = (): [
+  "online" | "offline",
+  (setOffline: boolean) => void,
+  boolean,
+] => {
   const [status, setStatus] = useState<"online" | "offline">(
     navigator.onLine ? "online" : "offline",
   );
 
-  const [forceOffline, setForceOffline] = useState(false);
+  const [forcedOffline, setForcedOffline] = useState(false);
 
   useEffect(() => {
     const onOnline = () => setStatus("online");
@@ -20,5 +24,5 @@ export const useNetworkStatus = () => {
     };
   }, []);
 
-  return [forceOffline ? "offline" : status, setForceOffline];
+  return [forcedOffline ? "offline" : status, setForcedOffline, forcedOffline];
 };

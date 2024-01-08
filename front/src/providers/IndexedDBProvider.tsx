@@ -1,27 +1,76 @@
 import { createContext, useContext } from "react";
 
 import indexedDBImplementation from "@/utils/IndexedDB";
-import { Optional } from "@/utils/types";
 
-type IndexedDBContextType<T extends { id: number }, Key = number> = {
+type IndexedDBContextType<
+  Key extends IDBValidKey = number,
+  T extends { id: Key } = any,
+> = {
   dbReady: boolean;
   appDB: React.MutableRefObject<IDBDatabase>;
-  add: (
-    storeName: string,
-    keyOrData: Key | Optional<T, "id">,
-    data?: T,
-  ) => Promise<T>;
-  upsert: (storeName: string, keyOrData: Key | T, data?: T) => Promise<T>;
-  remove: (storeName: string, key: Key) => Promise<Key>;
-  move: (
-    storeName: string,
-    oldKey: Key,
-    keyOrData: Key | T,
-    data?: T,
-  ) => Promise<T>;
-  getById: (storeName: string, id: Key) => Promise<T>;
-  getAllKeys: (storeName: string, id: number, count?: number) => Promise<Key[]>;
-  getAll: (storeName: string, count?: number) => Promise<T[]>;
+
+  add: (request: {
+    storeName: string;
+    key?: Key;
+    data?: T;
+    transaction?: IDBTransaction;
+  }) => Promise<T>;
+
+  upsert: (request: {
+    storeName: string;
+    key?: Key;
+    data?: T;
+    transaction?: IDBTransaction;
+  }) => Promise<T>;
+
+  remove: (request: {
+    storeName: string;
+    key: Key;
+    transaction?: IDBTransaction;
+  }) => Promise<Key>;
+
+  softRemove: (request: {
+    storeName: string;
+    key: Key;
+    timestamp: number;
+    transaction?: IDBTransaction;
+  }) => Promise<Key>;
+
+  getById: (request: {
+    storeName: string;
+    id: Key;
+    transaction?: IDBTransaction;
+  }) => Promise<T>;
+
+  getAllKeys: (request: {
+    storeName: string;
+    id: Key;
+    count?: number;
+    transaction?: IDBTransaction;
+  }) => Promise<Key[]>;
+
+  getAll: (request: {
+    storeName: string;
+    index?: string;
+    count?: number;
+    range?: IDBKeyRange;
+    transaction?: IDBTransaction;
+  }) => Promise<T[]>;
+
+  createTransaction: (transactionOptions: {
+    storeNames: string | string[];
+    mode?: IDBTransactionMode;
+    options?: IDBTransactionOptions;
+  }) => IDBTransaction;
+
+  transaction: (
+    transactionOptions: {
+      storeNames: string | string[];
+      mode?: IDBTransactionMode;
+      options?: IDBTransactionOptions;
+    },
+    transactionScope: (transaction: IDBTransaction) => void,
+  ) => Promise<void>;
 };
 
 const IndexedDBContext = createContext({});
@@ -35,15 +84,15 @@ const IndexedDBProvider = ({ children }) => {
 };
 
 export function useIndexedDB<
-  T extends { id: number },
-  Key = number,
->(): IndexedDBContextType<T, Key> {
+  Key extends IDBValidKey = number,
+  T extends { id: Key } = any,
+>(): IndexedDBContextType<Key, T> {
   const context = useContext(IndexedDBContext);
 
   if (context === undefined)
     throw new Error("useIndexedDB must be used within a IndexedDBProvider");
 
-  return context as IndexedDBContextType<T, Key>;
+  return context as IndexedDBContextType<Key, T>;
 }
 
 export default IndexedDBProvider;

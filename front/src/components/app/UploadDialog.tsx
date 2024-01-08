@@ -5,9 +5,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { useBrands } from "@/providers/BrandsProvider";
-import { useVisits } from "@/providers/VisitsProvider";
-import { getUpdatesFromCSV } from "@/utils/csv";
+import { useBrands, useData, useVisits } from "@/providers/DataProvider";
+import { getStateFromCSV } from "@/utils/csv";
 
 import Dialog from "../basics/Dialog";
 import LoadingOverlay from "../basics/LoadingOverlay";
@@ -24,21 +23,18 @@ const UploadDialog = ({
   fileUploading: boolean;
   fileData: string;
 }) => {
-  const { visits, upsertBatch: upsertBatchVisits } = useVisits();
-  const { brands, upsertBatch: upsertBatchBrands } = useBrands();
+  const { upload } = useData();
+  const { visits } = useVisits();
+  const { brands } = useBrands();
   const { toast } = useToast();
 
-  const [stats, error] = useMemo(() => {
+  const [updates, error] = useMemo(() => {
     try {
-      if (fileData)
-        return [getUpdatesFromCSV({ visits, brands }, fileData), null];
+      if (fileData) return [getStateFromCSV(fileData), null];
       return [
         {
-          updatedBrands: brands,
-          updatedVisits: visits,
-          appliedUpdates: 0,
-          ignoredUpdates: 0,
-          newVisits: 0,
+          visits: [],
+          brands: [],
         },
         null,
       ];
@@ -52,8 +48,10 @@ const UploadDialog = ({
   const onUpdate = async () => {
     setSaving(true);
     try {
-      await upsertBatchVisits(stats!.updatedVisits);
-      await upsertBatchBrands(stats!.updatedBrands);
+      await upload({
+        visits: updates!.visits,
+        brands: updates!.brands,
+      });
     } catch (e: any) {
       toast({
         variant: "destructive",
@@ -87,11 +85,9 @@ const UploadDialog = ({
             <div style={{ opacity: fileUploading ? 0 : "1" }}>
               <div className="p-2 grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)] gap-y-2 gap-x-4 text-sm">
                 <span className="font-medium">New visits :</span>{" "}
-                {stats!.newVisits}
-                <span className="font-medium">Updates to apply :</span>{" "}
-                {stats!.appliedUpdates}
-                <span className="font-medium">Updates to ignore :</span>{" "}
-                {stats!.ignoredUpdates}
+                {updates?.visits.length || 0}
+                <span className="font-medium">New brands :</span>{" "}
+                {updates?.brands.length || 0}
               </div>
             </div>
             {fileUploading && <LoadingOverlay />}

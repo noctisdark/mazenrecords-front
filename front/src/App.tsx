@@ -3,14 +3,13 @@ import { useEffect } from "react";
 
 import Main from "@/components/app/Main";
 import { Toaster } from "@/components/ui/toaster";
-import BrandsProvider from "@/providers/BrandsProvider";
 import IndexedDBProvider from "@/providers/IndexedDBProvider";
 import IntlProvider from "@/providers/IntlProvider";
 import ThemeProvider from "@/providers/ThemeProvider";
 import TooltipProvider from "@/providers/TooltipProvider";
-import VisitsProvider from "@/providers/VisitsProvider";
 
 import AuthProvider from "./providers/AuthProvider";
+import DataProvider from "./providers/DataProvider";
 import { useSafeAreaInsets } from "./utils/screen";
 
 const App = () => {
@@ -32,11 +31,9 @@ const App = () => {
         <TooltipProvider>
           <AuthProvider>
             <IndexedDBProvider>
-              <VisitsProvider>
-                <BrandsProvider>
-                  <Main />
-                </BrandsProvider>
-              </VisitsProvider>
+              <DataProvider>
+                <Main />
+              </DataProvider>
             </IndexedDBProvider>
           </AuthProvider>
         </TooltipProvider>

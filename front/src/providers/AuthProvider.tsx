@@ -7,6 +7,7 @@ import Overlay from "@/components/basics/Overlay";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { useEffectOnce } from "@/utils/hacks";
+import { useNetworkStatus } from "@/utils/network";
 import { SimpleOAuthHandler } from "@/utils/oauth/handler";
 
 import { login as androidLogin } from "./AuthProvider/android";
@@ -15,6 +16,8 @@ import { login as webLogin } from "./AuthProvider/web";
 type AuthContextType = {
   isLoggedIn: boolean;
   isLoading: boolean;
+  offlineMode: boolean;
+  isOffline: boolean;
 };
 
 export const platform = Capacitor.getPlatform();
@@ -31,9 +34,6 @@ const oauthHandler = new SimpleOAuthHandler(
 // install in api
 oauthHandler.hookIntoAxios(api);
 
-(window as any).api = api;
-(window as any).authHandler = oauthHandler;
-
 const AuthContext = createContext({});
 
 const AuthProvider = ({ children }) => {
@@ -41,6 +41,8 @@ const AuthProvider = ({ children }) => {
   const [hasRefreshToken, setHasRefreshToken] = useState(
     oauthHandler.refreshTokenIsValid,
   );
+
+  const [networkStatus, forceOffline, offlineMode] = useNetworkStatus();
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -110,7 +112,9 @@ const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const autoRefreshSession = !isLoggedIn && hasRefreshToken;
+  const autoRefreshSession =
+    !isLoggedIn && hasRefreshToken && networkStatus === "online";
+
   useEffectOnce(() => {
     if (autoRefreshSession) {
       setTimeout(() => {
@@ -129,15 +133,26 @@ const AuthProvider = ({ children }) => {
   const authContext: AuthContextType = {
     isLoggedIn,
     isLoading,
+    offlineMode,
+    isOffline: networkStatus === "offline",
   };
 
   if (isLoading) return <LoadingOverlay className="h-10 w-10" />;
-  if (!isLoggedIn)
+  if (!offlineMode && !isLoggedIn)
     return (
       <Overlay>
-        <Button size="lg" onClick={onLogin}>
-          Login with Cognito
-        </Button>
+        <div className="flex flex-col gap-y-2">
+          <Button size="lg" onClick={onLogin}>
+            Login with Cognito
+          </Button>
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={() => forceOffline(true)}
+          >
+            Continue in offline mode
+          </Button>
+        </div>
       </Overlay>
     );
 

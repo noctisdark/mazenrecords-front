@@ -1,8 +1,7 @@
 import axios from "axios";
-import applyCaseMiddleware from "axios-case-converter";
 
-const api = applyCaseMiddleware(axios.create({}), {
-  ignoreHeaders: false,
+const api = axios.create({
+  baseURL: import.meta.env.VITE_DEV_API_ENDPOINT,
 });
 
 export default api;

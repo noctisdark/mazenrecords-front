@@ -1,12 +1,10 @@
 import {
   Brand,
   toCSV as brandsToCSV,
-  computeUpdates as computeUpdatedBrands,
   parseCSV as csvToBrands,
 } from "@/models/Brand";
 import {
   Visit,
-  computeUpdates as computeUpdatedVisits,
   parseCSV as csvToVisits,
   toCSV as visitsToCSV,
 } from "@/models/Visit";
@@ -17,7 +15,12 @@ export const stateToCSV = ({ visits, brands }) => {
   return visitsToCSV(visits) + tableGlue + brandsToCSV(brands);
 };
 
-export const getStateFromCSV = (csv: string) => {
+export const getStateFromCSV = (
+  csv: string,
+): {
+  visits: Visit[];
+  brands: Brand[];
+} => {
   if (!csv)
     return {
       visits: [],
@@ -37,17 +40,5 @@ export const getStateFromCSV = (csv: string) => {
   return {
     visits,
     brands,
-  };
-};
-
-export const getUpdatesFromCSV = (
-  { visits, brands }: { visits: Visit[]; brands: Brand[] },
-  csv: string,
-) => {
-  const { visits: uploadedVisits, brands: uploadedBrands } =
-    getStateFromCSV(csv);
-  return {
-    ...computeUpdatedVisits(visits, uploadedVisits),
-    ...computeUpdatedBrands(brands, uploadedBrands),
   };
 };

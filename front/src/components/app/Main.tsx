@@ -1,16 +1,12 @@
-import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 
 import { DataTable, columns } from "@/components/basics/Table";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/components/ui/use-toast";
 import SimpleLayout from "@/layouts/SimpleLayout";
-import { useBrands } from "@/providers/BrandsProvider";
-import { useVisits } from "@/providers/VisitsProvider";
+import { useData } from "@/providers/DataProvider";
 import { stateToCSV } from "@/utils/csv";
 import { readFile, writeFile } from "@/utils/files";
 
-import LoadingOverlay from "../basics/LoadingOverlay";
 import UploadDialog from "./UploadDialog";
 import UpsertDialog from "./UpsertDialog";
 import ViewDialog from "./ViewDialog";
@@ -19,8 +15,7 @@ import ViewDialog from "./ViewDialog";
 // TODO: should find a way to cancel reading the file
 
 const Main = () => {
-  const { error: visitsError, loading: visitsLoading, visits } = useVisits();
-  const { error: brandsError, loading: brandsLoading, brands } = useBrands();
+  const { visits, brands } = useData();
   const [fileUploading, setFileUploading] = useState(false);
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [fileData, setFileData] = useState<string>("");
@@ -29,25 +24,7 @@ const Main = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [updatingId, setUpdatingId] = useState<number | null>(null);
 
-  (window as any).visits = visits;
-  (window as any).brands = brands;
-
   const { toast } = useToast();
-
-  const loading = visitsLoading || brandsLoading;
-  const error = visitsError || brandsError;
-
-  if (loading) return <LoadingOverlay className="h-10 w-10" />;
-  if (error)
-    return (
-      <Alert variant="destructive">
-        <AlertCircle />
-        <AlertTitle>Error loading data</AlertTitle>
-        <AlertDescription>
-          Error while loading data {error.toString()}.
-        </AlertDescription>
-      </Alert>
-    );
 
   const Header = (
     <div className="text-3xl text-center select-none">𝕸𝖆𝖟𝖊𝖓 𝕽𝖊𝖈𝖔𝖗𝖉𝖘</div>

@@ -26,11 +26,13 @@ export function Autocomplete({
   value,
   onChange,
   placeholder = "",
+  disabled = false,
 }: {
   options: Option[];
   value: string;
   onChange: (nextOption: string) => void;
   placeholder: string;
+  disabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -49,6 +51,7 @@ export function Autocomplete({
           variant="outline"
           role="combobox"
           aria-expanded={open}
+          disabled={disabled}
           className="w-full justify-between"
         >
           {value || placeholder}

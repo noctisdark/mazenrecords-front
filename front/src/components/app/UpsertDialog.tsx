@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Editor } from "@tiptap/react";
-import { Ban, CalendarIcon } from "lucide-react";
+import { Ban, CalendarIcon, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FormattedDate } from "react-intl";
@@ -22,10 +22,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
+import { Brand } from "@/models/Brand";
 import { Visit, VisitForm, VisitSchema, createVisitForm } from "@/models/Visit";
-import { useBrands } from "@/providers/BrandsProvider";
-import { useVisits } from "@/providers/VisitsProvider";
+import { useBrands, useVisits } from "@/providers/DataProvider";
+import { useData } from "@/providers/DataProvider";
 import { findById } from "@/utils/array";
+import { toastError } from "@/utils/error";
 
 import { Autocomplete } from "../basics/Autocomplete";
 import Dialog from "../basics/Dialog";
@@ -47,16 +49,18 @@ const UpsertDialog = ({
   visitId: number | null;
 }) => {
   const { brands, add: addBrand, upsertModel } = useBrands();
+  const { addVisit } = useData();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarIsOpen, setCalendarIsOpen] = useState(false);
   const {
     visits,
-    add,
     replace,
     move,
     nextId: nextVisitId,
     hasId: hasVisitId,
   } = useVisits();
+
   const { toast } = useToast();
 
   const visit = useMemo(
@@ -115,6 +119,9 @@ const UpsertDialog = ({
   }, [open]);
 
   const onSubmit = async () => {
+    setIsSubmitting(true);
+
+    // It's okey if this fails
     try {
       // Create brand and model if they don't exist
       const chosenModel = form.getValues().model;
@@ -123,16 +130,16 @@ const UpsertDialog = ({
         await addBrand({
           models: new Set([chosenModel]),
           name: chosenBrand,
-        });
+        } as Brand);
       } else {
         if (!modelOptions.find((option) => option.value === chosenModel))
           await upsertModel(foundBrand, chosenModel);
       }
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toastError({
         title: "Error adding brand / model",
-        description: String(error),
+        error,
+        toast,
       });
     }
 
@@ -150,14 +157,16 @@ const UpsertDialog = ({
         if (form.getValues().id !== visitId)
           result = await move(visitId!, updatedVisit);
         else result = await replace(updatedVisit);
-      } else result = await add(updatedVisit);
+      } else result = await addVisit(updatedVisit);
       onView(result.id);
     } catch (error) {
-      toast({
-        variant: "destructive",
+      toastError({
         title: "Error adding visit",
-        description: String(error),
+        error,
+        toast,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -184,6 +193,7 @@ const UpsertDialog = ({
                   type="number"
                   value={field.value}
                   onBlur={field.onBlur}
+                  disabled={isSubmitting}
                   onChange={(e) =>
                     field.onChange(parseInt(e.target.value) || "")
                   }
@@ -218,6 +228,7 @@ const UpsertDialog = ({
                     <FormControl>
                       <Button
                         variant="outline"
+                        disabled={isSubmitting}
                         className={cn(
                           "pl-3 text-left font-normal outline-none w-full",
                           !field.value && "text-muted-foreground",
@@ -261,6 +272,7 @@ const UpsertDialog = ({
                   type="text"
                   value={field.value}
                   onChange={field.onChange}
+                  disabled={isSubmitting}
                   placeholder="Insert the name of the client"
                 />
               </FormItem>
@@ -276,6 +288,7 @@ const UpsertDialog = ({
                   type="tel"
                   value={field.value}
                   onChange={(e) => field.onChange(e.target.value)}
+                  disabled={isSubmitting}
                   placeholder="How to reach out to the client"
                 />
               </FormItem>
@@ -289,6 +302,7 @@ const UpsertDialog = ({
                 <FormLabel>Brand</FormLabel>
                 <Autocomplete
                   value={field.value}
+                  disabled={isSubmitting}
                   onChange={(newBrand) => {
                     field.onChange(newBrand);
                     form.setValue("model", "");
@@ -308,6 +322,7 @@ const UpsertDialog = ({
                 <FormLabel>Model</FormLabel>
                 <Autocomplete
                   value={field.value}
+                  disabled={isSubmitting}
                   onChange={field.onChange}
                   options={modelOptions}
                   placeholder="Select a model..."
@@ -321,6 +336,7 @@ const UpsertDialog = ({
               <FormItem className="flex flex-col">
                 <FormLabel>Problem</FormLabel>
                 <TextEditor
+                  disabled={isSubmitting}
                   editorRef={problemTextRef}
                   defaultValue={visit?.problem || ""}
                   placeholder="Description of the problem"
@@ -334,6 +350,7 @@ const UpsertDialog = ({
               <FormItem className="flex flex-col">
                 <FormLabel>Fix</FormLabel>
                 <TextEditor
+                  disabled={isSubmitting}
                   editorRef={fixTextRef}
                   defaultValue={visit?.fix}
                   placeholder="Description of the fix"
@@ -349,6 +366,7 @@ const UpsertDialog = ({
                 <FormLabel>Amount</FormLabel>
                 <Input
                   value={field.value}
+                  disabled={isSubmitting}
                   onChange={(e) => field.onChange(parseInt(e.target.value))}
                   type="number"
                   placeholder="Cost of this visit"
@@ -358,8 +376,13 @@ const UpsertDialog = ({
           />
         </form>
         <DialogFooter>
-          <Button onClick={form.handleSubmit(onSubmit)} type="submit">
+          <Button
+            disabled={isSubmitting}
+            onClick={form.handleSubmit(onSubmit)}
+            type="submit"
+          >
             {openedAsUpdate ? "Update" : "Create"}
+            {isSubmitting && <Loader2 className="ml-1 h-4 w-4 animate-spin" />}
           </Button>
         </DialogFooter>
       </Dialog>

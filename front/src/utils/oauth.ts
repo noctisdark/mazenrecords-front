@@ -1,8 +1,5 @@
 import api from "@/api";
 
-// TODO: keep somewhat generic, but ngl this is essentially for logging into cognito user pools
-// TODO: Decide if we should reimplement as a context
-
 export type OAuthLoginRequest = {
   /**
    * The authentication server's URL

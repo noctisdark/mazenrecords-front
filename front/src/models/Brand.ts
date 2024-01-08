@@ -1,13 +1,19 @@
 import * as Papa from "papaparse";
 
+import { Update, objectIsDeleted } from "@/utils/types";
+
 export type Model = string;
 
 export type Brand = {
-  id: number;
+  id: string;
   name: string;
   models: Set<Model>;
-  updatedAt?: number;
-  deleted?: boolean;
+  updatedAt: number;
+};
+
+export type BrandForm = {
+  name: string;
+  models: Set<Model>;
 };
 
 export const brandToCSVRow = (
@@ -46,38 +52,18 @@ export const parseCSV = (csv: string): Brand[] => {
   return data.map(CSVRowToBrand);
 };
 
-export const brandToJSON = (brand: Brand) => ({
-  ...brand,
-  models: [...brand.models],
-});
-
-export const JSONToBrand = (brand: any): Brand => ({
-  ...brand,
-  models: new Set(brand.models),
-});
-
-export const computeUpdates = (
-  savedBrands: Brand[],
-  uploadedBrands: Brand[],
-) => {
-  const reverseMap: { [key: string]: Brand } = {};
-  for (const savedBrand of savedBrands)
-    reverseMap[savedBrand.id] = savedBrand;
-
-  for (const uploadedBrand of uploadedBrands) {
-    if (reverseMap[uploadedBrand.name]) {
-      for (const uploadedModel of uploadedBrand.models)
-        reverseMap[uploadedBrand.name].models.add(uploadedModel);
-    } else {
-      reverseMap[uploadedBrand.name] = {
-        id: uploadedBrand.id,
-        name: uploadedBrand.name,
-        models: new Set(uploadedBrand.models),
+export const brandToJSON = (brand: Update<string, Brand>): any =>
+  objectIsDeleted(brand)
+    ? brand
+    : {
+        ...brand,
+        models: [...brand.models],
       };
-    }
-  }
 
-  return {
-    updatedBrands: Object.values(reverseMap),
-  };
-};
+export const JSONToBrand = (brand: any): Update<string, Brand> =>
+  objectIsDeleted(brand)
+    ? brand
+    : {
+        ...brand,
+        models: new Set(brand.models),
+      };

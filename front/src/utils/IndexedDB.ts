@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-// TODO: decouple from react
-
 export const openDB = (
   name: string,
   version: number,
@@ -16,15 +14,19 @@ export const openDB = (
 };
 
 const initDB = (db: IDBDatabase) => {
-  db.createObjectStore("visits", {
+  const visitsStore = db.createObjectStore("visits", {
     keyPath: "id",
     autoIncrement: true,
   });
 
-  db.createObjectStore("brands", {
+  visitsStore.createIndex("updatedAt", "updatedAt", { unique: false });
+
+  const brandsStore = db.createObjectStore("brands", {
     keyPath: "id",
     autoIncrement: true,
   });
+
+  brandsStore.createIndex("updatedAt", "updatedAt", { unique: false });
 };
 
 const useIndexedDB = () => {
@@ -47,181 +49,230 @@ const useIndexedDB = () => {
     })();
   }, []);
 
-  const transaction = (
-    storeNames: string | string[],
-    mode?: IDBTransactionMode,
-    options?: IDBTransactionOptions,
-  ) => {
+  const createTransaction = ({
+    storeNames,
+    mode,
+    options,
+  }: {
+    storeNames: string | string[];
+    mode?: IDBTransactionMode;
+    options?: IDBTransactionOptions;
+  }) => {
     if (!appDB.current) throw new Error("DB Not Ready");
     return appDB.current.transaction(storeNames, mode, options);
   };
 
-  const add: <T, Key = number>(
-    storeName: string,
-    keyOrData: Key | T,
-    data?: T,
-  ) => Promise<T> = (storeName: string, keyOrdata: any, data?: any) => {
+  const add = <T, Key extends IDBValidKey = number>({
+    storeName,
+    key,
+    data,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readwrite",
+    }),
+  }: {
+    storeName: string;
+    key?: Key;
+    data?: T;
+    transaction?: IDBTransaction;
+  }): Promise<T> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const writeTransaction: IDBTransaction = transaction(
-        storeName,
-        "readwrite",
-      )!;
-      writeTransaction.onerror = () => reject(writeTransaction.error);
-      const store = writeTransaction.objectStore(storeName);
-      const request = data ? store.add(data, keyOrdata) : store.add(keyOrdata);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
+      const request = data
+        ? store.add(data, key as IDBValidKey)
+        : store.add(key);
+
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const source = data || keyOrdata;
+        const source = (data || key) as T;
         resolve({ ...source, id: request.result });
       };
     });
   };
 
-  const upsert: <T, Key = number>(
-    storeName: string,
-    keyOrData: Key | T,
-    data?: T,
-  ) => Promise<T> = (storeName: string, keyOrdata: any, data?: any) => {
+  const upsert = <T, Key extends IDBValidKey = number>({
+    storeName,
+    key,
+    data,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readwrite",
+    }),
+  }: {
+    storeName: string;
+    key?: Key;
+    data?: T;
+    transaction?: IDBTransaction;
+  }): Promise<T> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const writeTransaction: IDBTransaction = transaction(
-        storeName,
-        "readwrite",
-      )!;
-      writeTransaction.onerror = () => reject(writeTransaction.error);
-      const store = writeTransaction.objectStore(storeName);
-      const request = data ? store.put(data, keyOrdata) : store.put(keyOrdata);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
+      const request = data
+        ? store.put(data, key as IDBValidKey)
+        : store.put(key);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
-        const source = data || keyOrdata;
+        const source = data || (key as T);
         resolve({ ...source, id: request.result });
       };
     });
   };
 
-  const remove: <Key = number>(storeName: string, key: Key) => Promise<Key> = (
-    storeName: string,
-    key: any,
-  ) => {
+  const softRemove = <Key extends IDBValidKey = number>({
+    storeName,
+    key,
+    timestamp,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readwrite",
+    }),
+  }: {
+    storeName: string;
+    key: Key;
+    timestamp: number;
+    transaction?: IDBTransaction;
+  }) =>
+    upsert({
+      storeName,
+      data: {
+        id: key,
+        updatedAt: timestamp,
+        deleted: true,
+      },
+      transaction,
+    });
+
+  const remove = <Key extends IDBValidKey = number>({
+    storeName,
+    key,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readwrite",
+    }),
+  }: {
+    storeName: string;
+    key: Key;
+    transaction?: IDBTransaction;
+  }): Promise<Key> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const writeTransaction: IDBTransaction = transaction(
-        storeName,
-        "readwrite",
-      )!;
-      writeTransaction.onerror = () => reject(writeTransaction.error);
-      const store = writeTransaction.objectStore(storeName);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
       const request = store.delete(key);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(key);
     });
   };
 
-  const move: <T, Key = number>(
-    storeName: string,
-    oldKey: Key,
-    keyOrData: Key | T,
-    data?: T,
-  ) => Promise<T> = (
-    storeName: string,
-    oldKey: any,
-    keyOrdata: any,
-    data?: any,
-  ) => {
+  const getById = <T, Key extends IDBValidKey = number>({
+    storeName,
+    id,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readonly",
+    }),
+  }: {
+    storeName: string;
+    id: Key;
+    transaction?: IDBTransaction;
+  }): Promise<T> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const writeTransaction: IDBTransaction = transaction(
-        storeName,
-        "readwrite",
-      )!;
-      writeTransaction.onerror = () => reject(writeTransaction.error);
-      const store = writeTransaction.objectStore(storeName);
-      const writeRequest = data
-        ? store.add(data, keyOrdata)
-        : store.add(keyOrdata);
-      const deleteRequest = store.delete(oldKey);
-      writeRequest.onerror = () => reject(writeRequest.error);
-      deleteRequest.onerror = () => reject(deleteRequest.error);
-
-      writeRequest.onsuccess = deleteRequest.onsuccess = () => {
-        if (
-          writeRequest.readyState === "done" &&
-          deleteRequest.readyState === "done"
-        ) {
-          const source = data || keyOrdata;
-          resolve({ ...source, id: writeRequest.result });
-        }
-      };
-    });
-  };
-
-  const getById: <T, Key = number>(storeName: string, id: Key) => Promise<T> = (
-    storeName: string,
-    id: any,
-  ) => {
-    if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
-    return new Promise((resolve, reject) => {
-      const readTransaction: IDBTransaction = transaction(
-        storeName,
-        "readonly",
-      )!;
-      readTransaction.onerror = () => reject(readTransaction.error);
-      const store = readTransaction.objectStore(storeName);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
       const request = store.get(id);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result as any);
     });
   };
 
-  const getAllKeys: <Key = number>(
-    storeName: string,
-    id: number,
-    count?: number,
-  ) => Promise<Key[]> = (storeName: string, id: number, count?: number) => {
+  const getAllKeys = <Key extends IDBValidKey = number>({
+    storeName,
+    id,
+    count,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readonly",
+    }),
+  }: {
+    storeName: string;
+    id: Key;
+    count?: number;
+    transaction?: IDBTransaction;
+  }): Promise<Key[]> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const readTransaction: IDBTransaction = transaction(
-        storeName,
-        "readonly",
-      )!;
-      readTransaction.onerror = () => reject(readTransaction.error);
-      const store = readTransaction.objectStore(storeName);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
       const request = store.getAllKeys(id, count);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result as any);
     });
   };
 
-  const getAll: <T>(storeName: string, count?: number) => Promise<T[]> = (
-    storeName: string,
-    count?: number,
-  ) => {
+  const getAll = <T>({
+    storeName,
+    index,
+    count,
+    range = undefined,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readonly",
+    }),
+  }: {
+    storeName: string;
+    index?: string;
+    range?: IDBKeyRange;
+    count?: number;
+    transaction?: IDBTransaction;
+  }): Promise<T[]> => {
     if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
     return new Promise((resolve, reject) => {
-      const readTransaction: IDBTransaction = transaction(
-        storeName,
-        "readonly",
-      )!;
-      readTransaction.onerror = () => reject(readTransaction.error);
-      const store = readTransaction.objectStore(storeName);
-      const request = store.getAll(null, count);
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
+      const target = index ? store.index(index) : store;
+      const request = target.getAll(range, count);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => resolve(request.result as any);
     });
   };
 
-  const _getIndices: (storeName: string) => Promise<string[]> = (
-    storeName: string,
+  const _getIndices = ({
+    storeName,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readonly",
+    }),
+  }: {
+    storeName: string;
+    transaction?: IDBTransaction;
+  }): Promise<string[]> =>
+    new Promise((resolve, reject) => {
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
+      return resolve([...store.indexNames]);
+    });
+
+  const transaction = <T>(
+    {
+      storeNames,
+      mode,
+      options,
+    }: {
+      storeNames: string | string[];
+      mode?: IDBTransactionMode;
+      options?: IDBTransactionOptions;
+    },
+    transactionScope: (transaction: IDBTransaction) => T,
   ) =>
     new Promise((resolve, reject) => {
-      const readTransaction: IDBTransaction = transaction(
-        storeName,
-        "readonly",
-      )!;
-      readTransaction.onerror = () => reject(readTransaction.error);
-      const store = readTransaction.objectStore(storeName);
-      return resolve([...store.indexNames]);
+      const t = createTransaction({ storeNames, mode, options });
+      t.addEventListener("error", reject);
+      t.addEventListener("complete", () => resolve(undefined));
+      transactionScope(t);
     });
 
   return {
@@ -230,12 +281,13 @@ const useIndexedDB = () => {
     add,
     upsert,
     remove,
-    move,
+    softRemove,
     getById,
     getAllKeys,
     getAll,
+    createTransaction,
+    transaction,
     _getIndices,
-    _transaction: transaction,
   };
 };
 

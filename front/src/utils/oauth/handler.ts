@@ -101,7 +101,9 @@ export class SimpleOAuthHandler extends EventTarget {
 
   hookIntoAxios(axios: Axios) {
     axios.interceptors.request.use(async (config) => {
-      const isRequestToProtectedAPI = config.url?.startsWith(this.protectedAPI);
+      const isRequestToProtectedAPI =
+        config.url?.startsWith(this.protectedAPI) ||
+        (config.url?.startsWith("/") && config.baseURL === this.protectedAPI);
 
       if (!isRequestToProtectedAPI || config.authorization === false)
         return config;

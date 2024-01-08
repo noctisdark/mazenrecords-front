@@ -1,7 +1,7 @@
 import * as Papa from "papaparse";
 import * as z from "zod";
 
-import { NumberOrEmptyString } from "@/utils/types";
+import { NumberOrEmptyString, Update } from "@/utils/types";
 
 export type Visit = {
   id: number;
@@ -13,8 +13,7 @@ export type Visit = {
   problem: string;
   fix: string;
   amount: number;
-  updatedAt?: number;
-  deleted?: boolean;
+  updatedAt: number;
 };
 
 export const VisitSchema = z.object({
@@ -88,46 +87,9 @@ export const parseCSV = (csv: string): Visit[] => {
     .map(CSVRowToVisit);
 };
 
-export const visitToJSON = (visit: Visit) => visit;
+export const visitToJSON = (visit: Update<number, Visit>): any => visit;
 
-export const JSONToVisit = (visit: Visit): Visit => visit;
-
-export const computeUpdates = (
-  savedVisits: Visit[],
-  uploadedVisits: Visit[],
-) => {
-  const reverseMap: { [key: number]: Visit } = {};
-  const diffMap: { [key: number]: Visit } = {};
-  for (const savedVisit of savedVisits)
-    reverseMap[savedVisit.id] = savedVisit;
-
-  let newVisits = 0,
-    appliedUpdates = 0,
-    ignoredUpdates = 0;
-
-  for (const uploadedVisit of uploadedVisits) {
-    if (!reverseMap[uploadedVisit.id]) {
-      reverseMap[uploadedVisit.id] = uploadedVisit;
-      diffMap[uploadedVisit.id] = uploadedVisit;
-      newVisits++;
-    } else if (
-      !uploadedVisit.updatedAt ||
-      uploadedVisit.updatedAt > reverseMap[uploadedVisit.id].updatedAt!
-    ) {
-      reverseMap[uploadedVisit.id] = uploadedVisit;
-      diffMap[uploadedVisit.id] = uploadedVisit;
-      appliedUpdates++;
-    } else {
-      ignoredUpdates++;
-    }
-  }
-
-  const updatedVisits = Object.values(diffMap);
-
-  return {
-    newVisits,
-    appliedUpdates,
-    ignoredUpdates,
-    updatedVisits,
-  };
-};
+export const JSONToVisit = (visit: any): Update<number, Visit> => ({
+  ...visit,
+  id: +visit.id,
+});
