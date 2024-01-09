@@ -43,6 +43,7 @@ type DataContextType = {
   loading: boolean;
   error?: Error;
   refresh: () => void;
+  logOutAndDiscard: () => void;
   upload: ({
     visits,
     brands,
@@ -71,10 +72,9 @@ const DataContext = createContext({});
 
 const DataProvider = ({ children }) => {
   const { toast } = useToast();
-  const { offlineMode, isOffline } = useAuth();
-  const { dbReady, getAll, add, upsert, remove, softRemove, transaction } = useIndexedDB<
-    string | number
-  >();
+  const { offlineMode, isOffline, logOut } = useAuth();
+  const { dbReady, getAll, add, upsert, remove, softRemove, transaction, clear } =
+    useIndexedDB<string | number>();
 
   const isFirstRender = useRef(true);
 
@@ -90,6 +90,20 @@ const DataProvider = ({ children }) => {
 
   const [error, setError] = useState<Error>();
   const [loading, setLoading] = useState<boolean>(!dbReady);
+
+  const logOutAndDiscard = async () => {
+    await transaction(
+      { storeNames: ["visits", "brands"], mode: "readwrite" },
+      (transaction) => {
+        clear({ transaction, storeName: "visits" });
+        clear({ transaction, storeName: "brands" });
+      },
+    );
+
+    setLastEpoch(0);
+    // this will unmount this component
+    logOut();
+  };
 
   const refresh = async ({
     fromZero = false,
@@ -438,6 +452,9 @@ const DataProvider = ({ children }) => {
           );
         },
       );
+
+      setVisits(newVisits);
+      setBrands(newBrands);
       return { visits: newVisits, brands: newBrands };
     } else {
       const {
@@ -545,6 +562,8 @@ const DataProvider = ({ children }) => {
     brands,
     loading,
     error,
+    logOutAndDiscard,
+
     refresh,
     upload,
 

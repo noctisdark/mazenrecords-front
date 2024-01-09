@@ -18,6 +18,7 @@ type AuthContextType = {
   isLoading: boolean;
   offlineMode: boolean;
   isOffline: boolean;
+  logOut: () => void;
 };
 
 export const platform = Capacitor.getPlatform();
@@ -134,6 +135,10 @@ const AuthProvider = ({ children }) => {
     isLoading,
     offlineMode,
     isOffline: networkStatus === "offline",
+    logOut: () => {
+      if (isLoggedIn) oauthHandler.revokeToken();
+      forceOffline(false);
+    },
   };
 
   if (isLoading) return <LoadingOverlay className="h-10 w-10" />;

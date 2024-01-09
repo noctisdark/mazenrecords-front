@@ -15,7 +15,7 @@ import ViewDialog from "./ViewDialog";
 // TODO: should find a way to cancel reading the file
 
 const Main = () => {
-  const { visits, brands } = useData();
+  const { visits, brands, logOutAndDiscard } = useData();
   const [fileUploading, setFileUploading] = useState(false);
   const [fileDialogOpen, setFileDialogOpen] = useState(false);
   const [fileData, setFileData] = useState<string>("");
@@ -56,6 +56,9 @@ const Main = () => {
           } finally {
             setFileUploading(false);
           }
+        }}
+        onLogout={() => {
+          if (confirm("Logout and discard local updates ?")) logOutAndDiscard();
         }}
         onCreate={() => {
           setUpdatingId(null);

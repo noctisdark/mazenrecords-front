@@ -43,19 +43,15 @@ export function createVisitForm(visitOrNextId: Visit | number): VisitForm {
         fix: "",
         amount: "",
       }
-    : { ...visitOrNextId, date: new Date() };
+    : { ...visitOrNextId, date: new Date(visitOrNextId.date) };
 }
 
 export const visitToCSVRow = (
   visit: Visit,
 ): {
-  [key in keyof Visit]?: string | number | boolean | string[] | number[];
+  [key in keyof Visit]?: string | number | boolean;
 } => {
-  return {
-    ...visit,
-    date: visit.date,
-    updatedAt: visit.updatedAt,
-  };
+  return visit;
 };
 
 export const toCSV = (array: Visit[]): string => {
@@ -64,19 +60,21 @@ export const toCSV = (array: Visit[]): string => {
 };
 
 export const CSVRowToVisit = (visit: {
-  [key in keyof Visit]: string | number | string[] | number[];
+  [key in keyof Visit]: string;
 }): Visit => {
   return {
     ...visit,
-    contact: visit.contact.toString(), // in case it isn't presented as a string
-  } as Visit;
+    id: +visit.id,
+    date: +visit.date,
+    updatedAt: +visit.updatedAt,
+    amount: +visit.amount
+  };
 };
 
 export const parseCSV = (csv: string): Visit[] => {
   if (!csv) return [];
   const { data, errors, meta } = Papa.parse(csv, {
     header: true,
-    dynamicTyping: true,
   });
   if (meta.aborted || errors.length) throw "Cannot parse CSV";
   // use ref as ID

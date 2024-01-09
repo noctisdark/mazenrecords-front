@@ -57,6 +57,8 @@ type IndexedDBContextType<
     transaction?: IDBTransaction;
   }) => Promise<T[]>;
 
+  clear: (request: { storeName: string; transaction?: IDBTransaction }) => Promise<void>;
+
   createTransaction: (transactionOptions: {
     storeNames: string | string[];
     mode?: IDBTransactionMode;

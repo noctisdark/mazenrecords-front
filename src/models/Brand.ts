@@ -34,11 +34,12 @@ export const toCSV = (array: Brand[]): string => {
 };
 
 export const CSVRowToBrand = (brand: {
-  [key in keyof Brand]: string | number | string[] | number[];
+  [key in keyof Brand]: string;
 }): Brand => {
   return {
     ...brand,
-    models: new Set((brand.models as string).split("|")),
+    models: new Set(brand.models.split("|")),
+    updatedAt: +brand.updatedAt,
   } as Brand;
 };
 
@@ -46,7 +47,6 @@ export const parseCSV = (csv: string): Brand[] => {
   if (!csv) return [];
   const { data, errors, meta } = Papa.parse(csv, {
     header: true,
-    dynamicTyping: true,
   });
   if (meta.aborted || errors.length) throw "Cannot parse CSV";
   return data.map(CSVRowToBrand);

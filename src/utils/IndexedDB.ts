@@ -23,7 +23,6 @@ const initDB = (db: IDBDatabase) => {
 
   const brandsStore = db.createObjectStore("brands", {
     keyPath: "id",
-    autoIncrement: true,
   });
 
   brandsStore.createIndex("updatedAt", "updatedAt", { unique: false });
@@ -232,6 +231,26 @@ const useIndexedDB = () => {
     });
   };
 
+  const clear = ({
+    storeName,
+    transaction = createTransaction({
+      storeNames: [storeName],
+      mode: "readwrite",
+    }),
+  }: {
+    storeName: string;
+    transaction?: IDBTransaction;
+  }): Promise<void> => {
+    if (!appDB.current) return Promise.reject(new Error("DB Not Ready"));
+    return new Promise((resolve, reject) => {
+      transaction.addEventListener("error", () => reject(transaction.error));
+      const store = transaction.objectStore(storeName);
+      const request = store.clear();
+      request.onerror = () => reject(request.error);
+      request.onsuccess = () => resolve();
+    });
+  };
+
   const _getIndices = ({
     storeName,
     transaction = createTransaction({
@@ -279,6 +298,7 @@ const useIndexedDB = () => {
     getAll,
     createTransaction,
     transaction,
+    clear,
     _getIndices,
   };
 };

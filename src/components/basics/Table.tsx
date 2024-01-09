@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, Download, Plus, Upload } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, LogOut, Plus, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { FormattedDate, FormattedNumber } from "react-intl";
 
@@ -118,11 +118,13 @@ export function DataTable<TData, TValue>({
   onDownloadClicked,
   onUploadClicked,
   onCreate,
+  onLogout,
   onView,
 }: DataTableProps<TData, TValue> & {
   onDownloadClicked: () => void;
   onUploadClicked: (e: File) => void;
   onCreate: () => void;
+  onLogout: () => void;
   onView: (id: number) => void;
 }) {
   const [sorting, setSorting] = useState<SortingState>([
@@ -166,14 +168,31 @@ export function DataTable<TData, TValue>({
   return (
     <div className="flex flex-col">
       <div className="flex self-end mb-2 gap-x-4 gap-y-4 flex-wrap justify-end">
-        <div className="flex flex-row">
+        <div className="flex flex-row gap-x-2 items-center">
+          <Tooltip
+            triggerAsChild
+            trigger={
+              <Button
+                className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                variant="default"
+                size="sm"
+                onClick={onCreate}
+              >
+                <Plus />
+              </Button>
+            }
+          >
+            Add new visit
+          </Tooltip>
+
           <Tooltip
             triggerAsChild
             trigger={
               <div
                 className={cn(
                   `overflow-hidden ${buttonVariants({
-                    variant: "ghost",
+                    variant: "outline",
+                    size: "sm",
                   })} focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 relative`,
                 )}
               >
@@ -197,7 +216,8 @@ export function DataTable<TData, TValue>({
             trigger={
               <Button
                 className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                variant="ghost"
+                variant="outline"
+                size="sm"
                 onClick={onDownloadClicked}
               >
                 <Download />
@@ -212,14 +232,15 @@ export function DataTable<TData, TValue>({
             trigger={
               <Button
                 className="focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                variant="ghost"
-                onClick={onCreate}
+                variant="destructive"
+                size="sm"
+                onClick={onLogout}
               >
-                <Plus />
+                <LogOut />
               </Button>
             }
           >
-            Add new visit
+            Logout
           </Tooltip>
         </div>
 
