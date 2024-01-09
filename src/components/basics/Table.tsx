@@ -47,11 +47,7 @@ export const columns: ColumnDef<Visit>[] = [
             onClick={() => column.toggleSorting(isAsc)}
           >
             Reference
-            {isAsc ? (
-              <ArrowDown className="h-4 w-4" />
-            ) : (
-              <ArrowUp className="h-4 w-4" />
-            )}
+            {isAsc ? <ArrowDown className="h-4 w-4" /> : <ArrowUp className="h-4 w-4" />}
           </Button>
         </span>
       );
@@ -104,11 +100,7 @@ export const columns: ColumnDef<Visit>[] = [
     header: "Amount",
     cell: ({ row }) =>
       row.getValue("amount") ? (
-        <FormattedNumber
-          value={row.getValue("amount")}
-          style="currency"
-          currency="TND"
-        />
+        <FormattedNumber value={row.getValue("amount")} style="currency" currency="TND" />
       ) : (
         "N/A"
       ),
@@ -169,8 +161,7 @@ export function DataTable<TData, TValue>({
 
   const getFilterValue = () => table.getColumn(filterBy)?.getFilterValue();
 
-  const inputType =
-    filterBy === "client" ? "text" : filterBy === "id" ? "number" : "tel";
+  const inputType = filterBy === "client" ? "text" : filterBy === "id" ? "number" : "tel";
 
   return (
     <div className="flex flex-col">
@@ -191,8 +182,7 @@ export function DataTable<TData, TValue>({
                   type="file"
                   className="absolute inset-0 pl-[100%] cursor-pointer overflow-hidden opacity-0"
                   onChange={(e) => (
-                    e.target!.files!.length &&
-                      onUploadClicked(e.target!.files![0]),
+                    e.target!.files!.length && onUploadClicked(e.target!.files![0]),
                     (e.target!.value = "")
                   )}
                 />
@@ -252,8 +242,7 @@ export function DataTable<TData, TValue>({
                 setTimeout(() => filterRef.current?.focus(), 1);
               }}
               onOpen={async () => {
-                if (Capacitor.getPlatform() === "android")
-                  await Keyboard.hide();
+                if (Capacitor.getPlatform() === "android") await Keyboard.hide();
                 setSelectFilterIsOpen(true);
               }}
               onClose={() => setSelectFilterIsOpen(false)}
@@ -282,10 +271,7 @@ export function DataTable<TData, TValue>({
                   >
                     {header.isPlaceholder
                       ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                      : flexRender(header.column.columnDef.header, header.getContext())}
                   </TableHead>
                 );
               })}

@@ -29,13 +29,10 @@ export const login = async (instance: SimpleOAuthHandler) => {
         else reject(new Error("Login - No Authentication code received."));
       });
 
-      const finishListener = await Browser.addListener(
-        "browserFinished",
-        () => {
-          finishListener.remove();
-          reject(new Error("Login - Authentication popup was closed."));
-        },
-      );
+      const finishListener = await Browser.addListener("browserFinished", () => {
+        finishListener.remove();
+        reject(new Error("Login - Authentication popup was closed."));
+      });
     })();
   });
 

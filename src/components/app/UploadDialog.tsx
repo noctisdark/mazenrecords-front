@@ -96,11 +96,7 @@ const UploadDialog = ({
             <Tooltip
               triggerAsChild
               trigger={
-                <Button
-                  variant="destructive"
-                  onClick={onClose}
-                  disabled={fileUploading}
-                >
+                <Button variant="destructive" onClick={onClose} disabled={fileUploading}>
                   <X />
                 </Button>
               }
@@ -111,16 +107,8 @@ const UploadDialog = ({
             <Tooltip
               triggerAsChild
               trigger={
-                <Button
-                  variant="default"
-                  onClick={onUpdate}
-                  disabled={fileUploading}
-                >
-                  {saving ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Check />
-                  )}
+                <Button variant="default" onClick={onUpdate} disabled={fileUploading}>
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check />}
                 </Button>
               }
             >

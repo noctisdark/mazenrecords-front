@@ -112,8 +112,7 @@ const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const autoRefreshSession =
-    !isLoggedIn && hasRefreshToken && networkStatus === "online";
+  const autoRefreshSession = !isLoggedIn && hasRefreshToken && networkStatus === "online";
 
   useEffectOnce(() => {
     if (autoRefreshSession) {
@@ -145,20 +144,14 @@ const AuthProvider = ({ children }) => {
           <Button size="lg" onClick={onLogin}>
             Login with Cognito
           </Button>
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => forceOffline(true)}
-          >
+          <Button variant="secondary" size="lg" onClick={() => forceOffline(true)}>
             Continue in offline mode
           </Button>
         </div>
       </Overlay>
     );
 
-  return (
-    <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>;
 };
 
 export function useAuth(): AuthContextType {

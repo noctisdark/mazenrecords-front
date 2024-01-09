@@ -3,11 +3,7 @@ import { useState } from "react";
 import { FormattedDate, FormattedNumber } from "react-intl";
 
 import { Button } from "@/components/ui/button";
-import {
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useVisits } from "@/providers/DataProvider";
 import { findById } from "@/utils/array";
 import { toastError } from "@/utils/error";
@@ -41,13 +37,10 @@ const ViewDialog = ({
       </DialogHeader>
 
       <div className="p-2 grid grid-cols-[minmax(0,max-content)_minmax(0,1fr)] gap-y-2 gap-x-4 text-sm">
-        <span className="font-medium">Reference N°</span>{" "}
-        <span>{visit.id}</span>
-        <span className="font-medium">Date</span>{" "}
-        <FormattedDate value={visit.date} />
+        <span className="font-medium">Reference N°</span> <span>{visit.id}</span>
+        <span className="font-medium">Date</span> <FormattedDate value={visit.date} />
         <span className="font-medium">Client</span> <span>{visit.client}</span>
-        <span className="font-medium">Contact</span>{" "}
-        <span>{visit.contact}</span>
+        <span className="font-medium">Contact</span> <span>{visit.contact}</span>
         <span className="font-medium">Brand</span> <span>{visit.brand}</span>
         <span className="font-medium">Model</span> <span>{visit.model}</span>
         <span className="font-medium">Problem</span>
@@ -62,11 +55,7 @@ const ViewDialog = ({
         />
         <span className="font-medium">Amount</span>
         {visit.amount !== null ? (
-          <FormattedNumber
-            value={visit.amount}
-            style="currency"
-            currency="TND"
-          />
+          <FormattedNumber value={visit.amount} style="currency" currency="TND" />
         ) : (
           ""
         )}
@@ -96,9 +85,7 @@ const ViewDialog = ({
               variant="destructive"
               disabled={isDeleting}
               onClick={async () => {
-                const confirmation = confirm(
-                  "Do you really want to delete this entry ?",
-                );
+                const confirmation = confirm("Do you really want to delete this entry ?");
                 if (!confirmation) return;
                 try {
                   setIsDeleting(true);

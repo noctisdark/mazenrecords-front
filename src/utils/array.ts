@@ -37,9 +37,7 @@ export const append = <Key extends number | string, T extends { id: Key }>(
   newItem: T,
 ) => {
   if (findById(array, newItem.id))
-    throw new Error(
-      "array.append error: Object found\n> " + JSON.stringify(newItem),
-    );
+    throw new Error("array.append error: Object found\n> " + JSON.stringify(newItem));
 
   return [...array, newItem];
 };
@@ -50,24 +48,17 @@ export const removeById = <Key extends number | string, T extends { id: Key }>(
   removedId: Key,
 ) => {
   if (!findById(array, removedId))
-    throw new Error(
-      "array.removeById error: Object not found\n> id = " + removedId,
-    );
+    throw new Error("array.removeById error: Object not found\n> id = " + removedId);
   return array.filter(({ id }) => removedId != id);
 };
 
 // Operations that keep the original array sorted
 
 // O(log n)
-export const findByIdSorted = <T extends { id: number }>(
-  array: T[],
-  searchId: number,
-) => binarySearch(array, { id: searchId }, defaultSorting);
+export const findByIdSorted = <T extends { id: number }>(array: T[], searchId: number) =>
+  binarySearch(array, { id: searchId }, defaultSorting);
 
-export const upsertByIdSorted = <T extends { id: number }>(
-  array: T[],
-  newItem: T,
-) => {
+export const upsertByIdSorted = <T extends { id: number }>(array: T[], newItem: T) => {
   try {
     return appendSorted(array, newItem);
   } catch (err) {
@@ -82,22 +73,13 @@ export const moveIdSorted = <T extends { id: number }>(
 ) => appendSorted(removeById(array, oldItemId), newItem);
 
 // O(n) but keeps the array sorted
-export const appendSorted = <T extends { id: number }>(
-  array: T[],
-  newItem: T,
-) => {
+export const appendSorted = <T extends { id: number }>(array: T[], newItem: T) => {
   if (findByIdSorted(array, newItem.id) >= 0)
-    throw new Error(
-      "array.append error: Object found\n> " + JSON.stringify(newItem),
-    );
+    throw new Error("array.append error: Object found\n> " + JSON.stringify(newItem));
 
   const insertionIndex = upperBound(array, newItem, defaultSorting);
 
-  return [
-    ...array.slice(0, insertionIndex),
-    newItem,
-    ...array.slice(insertionIndex),
-  ];
+  return [...array.slice(0, insertionIndex), newItem, ...array.slice(insertionIndex)];
 };
 
 export const mergeUpdates = <
@@ -115,8 +97,7 @@ export const mergeUpdates = <
   localDeletes: (number | string)[];
 } => {
   const reverseMap: { [key: number | string]: Update<Key, T> } = {};
-  for (const localUpdate of localUpdates)
-    reverseMap[localUpdate.id] = localUpdate;
+  for (const localUpdate of localUpdates) reverseMap[localUpdate.id] = localUpdate;
 
   let newEpoch: number = epoch;
   const upstreamUpserts: T[] = [],
@@ -134,8 +115,7 @@ export const mergeUpdates = <
     if (newestUpdate === upstreamUpdate) {
       if ("deleted" in newestUpdate) localDeletes.push(newestUpdate.id);
       else localUpserts.push(newestUpdate);
-      newEpoch =
-        newestUpdate.updatedAt > epoch ? newestUpdate.updatedAt : epoch;
+      newEpoch = newestUpdate.updatedAt > epoch ? newestUpdate.updatedAt : epoch;
     } else {
       if ("deleted" in newestUpdate) upstreamDeletes.push(newestUpdate.id);
       else upstreamUpserts.push(newestUpdate);

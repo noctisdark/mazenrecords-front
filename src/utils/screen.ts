@@ -21,10 +21,7 @@ export const useSafeAreaInsets = () => {
     (async () => {
       const { insets } = await SafeArea.getSafeAreaInsets();
       setSafeAreaInsets(insets);
-      eventListener = await SafeArea.addListener(
-        "safeAreaChanged",
-        onSafeAreaChanged,
-      );
+      eventListener = await SafeArea.addListener("safeAreaChanged", onSafeAreaChanged);
     })();
 
     return () => {

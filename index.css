@@ -94,11 +94,7 @@ input[type="number"] {
     @apply flex flex-col w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground;
   }
 
-  .tiptap-editor:not(
-      .readOnly,
-      [aria-disabled="true"],
-      :disabled
-    ):focus-within {
+  .tiptap-editor:not(.readOnly, [aria-disabled="true"], :disabled):focus-within {
     @apply ring-2 ring-ring ring-offset-2;
   }
 

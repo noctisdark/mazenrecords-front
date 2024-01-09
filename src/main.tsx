@@ -10,10 +10,7 @@ if (platform === "web") {
   const openURL = new URL(window.location.href);
   if (openURL.pathname === "/callback") {
     const code = openURL.searchParams.get("code");
-    window.opener.postMessage(
-      { source: "/callback", code },
-      window.location.origin,
-    );
+    window.opener.postMessage({ source: "/callback", code }, window.location.origin);
     window.close();
   }
 }

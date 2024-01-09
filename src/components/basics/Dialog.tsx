@@ -34,9 +34,7 @@ const Dialog = ({
 
   return (
     <GenericDialog open={open} onOpenChange={onOpenChange}>
-      {trigger && (
-        <DialogTrigger asChild={triggerAsChild}>{trigger}</DialogTrigger>
-      )}
+      {trigger && <DialogTrigger asChild={triggerAsChild}>{trigger}</DialogTrigger>}
       <DialogContent>{children}</DialogContent>
     </GenericDialog>
   );

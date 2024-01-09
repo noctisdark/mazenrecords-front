@@ -2,13 +2,7 @@ import ListItem from "@tiptap/extension-list-item";
 import Placeholder from "@tiptap/extension-placeholder";
 import TextStyle from "@tiptap/extension-text-style";
 import UnderLine from "@tiptap/extension-underline";
-import {
-  Editor,
-  EditorContent,
-  Extension,
-  generateHTML,
-  useEditor,
-} from "@tiptap/react";
+import { Editor, EditorContent, Extension, generateHTML, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   Bold,
@@ -88,9 +82,7 @@ const MenuBar = ({ editor }: { editor: Editor | null }) => {
         <Underline />
       </MenuBarButton>
       <MenuBarButton
-        onClick={() =>
-          editor.chain().focus().keyboardShortcut("Shift-Enter").run()
-        }
+        onClick={() => editor.chain().focus().keyboardShortcut("Shift-Enter").run()}
         name="New line"
       >
         <CornerDownLeft />
@@ -146,10 +138,7 @@ const extensions = [
     addKeyboardShortcuts() {
       return {
         Enter: () => {
-          if (
-            this.editor.isActive("orderedList") ||
-            this.editor.isActive("bulletList")
-          ) {
+          if (this.editor.isActive("orderedList") || this.editor.isActive("bulletList")) {
             return this.editor.chain().createParagraphNear().run();
           }
           return this.editor.commands.setHardBreak();

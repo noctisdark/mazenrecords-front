@@ -28,9 +28,7 @@ const Popover = ({
 
   return (
     <GenericPopover open={open} onOpenChange={onOpenChange}>
-      {trigger && (
-        <PopoverTrigger asChild={triggerAsChild}>{trigger}</PopoverTrigger>
-      )}
+      {trigger && <PopoverTrigger asChild={triggerAsChild}>{trigger}</PopoverTrigger>}
       <PopoverContent>{children}</PopoverContent>
     </GenericPopover>
   );

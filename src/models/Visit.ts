@@ -18,9 +18,7 @@ export type Visit = {
 
 export const VisitSchema = z.object({
   id: z.number({ required_error: "Reference number is required" }),
-  date: z
-    .date({ required_error: "Date of the visit is required" })
-    .default(new Date()),
+  date: z.date({ required_error: "Date of the visit is required" }).default(new Date()),
   client: z.string({ required_error: "Client's name is required" }).min(4),
   contact: z.string({ required_error: "Client's contact is required" }).min(4),
   brand: z.string().min(1).default(""),

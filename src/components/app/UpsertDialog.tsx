@@ -7,18 +7,8 @@ import { FormattedDate } from "react-intl";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
+import { DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -53,13 +43,7 @@ const UpsertDialog = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [calendarIsOpen, setCalendarIsOpen] = useState(false);
-  const {
-    visits,
-    replace,
-    move,
-    nextId: nextVisitId,
-    hasId: hasVisitId,
-  } = useVisits();
+  const { visits, replace, move, nextId: nextVisitId, hasId: hasVisitId } = useVisits();
 
   const { toast } = useToast();
 
@@ -83,9 +67,7 @@ const UpsertDialog = ({
       VisitSchema.refine(
         (visit) => visitId === visit.id || !hasVisitId(visit.id),
         (visit) => ({
-          message: visit.id
-            ? `N° ${visit.id} already exists`
-            : "Ref is required",
+          message: visit.id ? `N° ${visit.id} already exists` : "Ref is required",
           path: ["id"],
         }),
       ),
@@ -100,9 +82,7 @@ const UpsertDialog = ({
   const modelOptions = useMemo(() => {
     const brand = brands.find((item) => item.name === chosenBrand);
     return (
-      (brand &&
-        [...brand.models].map((model) => ({ value: model, label: model }))) ||
-      []
+      (brand && [...brand.models].map((model) => ({ value: model, label: model }))) || []
     );
   }, [brands, chosenBrand]);
 
@@ -154,8 +134,7 @@ const UpsertDialog = ({
 
       let result: Visit;
       if (openedAsUpdate) {
-        if (form.getValues().id !== visitId)
-          result = await move(visitId!, updatedVisit);
+        if (form.getValues().id !== visitId) result = await move(visitId!, updatedVisit);
         else result = await replace(updatedVisit);
       } else result = await addVisit(updatedVisit);
       onView(result.id);
@@ -178,10 +157,7 @@ const UpsertDialog = ({
             {openedAsUpdate ? "Update a visit" : "Register a new visit"}
           </DialogTitle>
         </DialogHeader>
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="flex flex-col gap-y-2"
-        >
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-y-2">
           <FormField
             control={form.control}
             name="id"
@@ -194,9 +170,7 @@ const UpsertDialog = ({
                   value={field.value}
                   onBlur={field.onBlur}
                   disabled={isSubmitting}
-                  onChange={(e) =>
-                    field.onChange(parseInt(e.target.value) || "")
-                  }
+                  onChange={(e) => field.onChange(parseInt(e.target.value) || "")}
                   placeholder="Insert the reference number"
                 />
 

@@ -35,15 +35,11 @@ const useIndexedDB = () => {
 
   useEffect(() => {
     (async () => {
-      appDB.current = await openDB(
-        "appStorage",
-        1,
-        (ev: IDBVersionChangeEvent) => {
-          // Initialize DB
-          const db: IDBDatabase = (ev as any).target.result;
-          initDB(db);
-        },
-      );
+      appDB.current = await openDB("appStorage", 1, (ev: IDBVersionChangeEvent) => {
+        // Initialize DB
+        const db: IDBDatabase = (ev as any).target.result;
+        initDB(db);
+      });
 
       setDbReady(true);
     })();
@@ -80,9 +76,7 @@ const useIndexedDB = () => {
     return new Promise((resolve, reject) => {
       transaction.addEventListener("error", () => reject(transaction.error));
       const store = transaction.objectStore(storeName);
-      const request = data
-        ? store.add(data, key as IDBValidKey)
-        : store.add(key);
+      const request = data ? store.add(data, key as IDBValidKey) : store.add(key);
 
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
@@ -110,9 +104,7 @@ const useIndexedDB = () => {
     return new Promise((resolve, reject) => {
       transaction.addEventListener("error", () => reject(transaction.error));
       const store = transaction.objectStore(storeName);
-      const request = data
-        ? store.put(data, key as IDBValidKey)
-        : store.put(key);
+      const request = data ? store.put(data, key as IDBValidKey) : store.put(key);
       request.onerror = () => reject(request.error);
       request.onsuccess = () => {
         const source = data || (key as T);

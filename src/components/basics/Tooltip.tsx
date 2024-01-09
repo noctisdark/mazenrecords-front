@@ -16,9 +16,7 @@ const Tooltip = ({
   children: ReactNode | ReactNode[];
 }) => (
   <GenericTooltip>
-    {trigger && (
-      <TooltipTrigger asChild={triggerAsChild}>{trigger}</TooltipTrigger>
-    )}
+    {trigger && <TooltipTrigger asChild={triggerAsChild}>{trigger}</TooltipTrigger>}
     <TooltipContent>{children}</TooltipContent>
   </GenericTooltip>
 );

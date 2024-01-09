@@ -86,8 +86,7 @@ export class SimpleOAuthHandler extends EventTarget {
 
   get accessTokenIsValid() {
     return Boolean(
-      this.tokens &&
-        this.tokens.expiresIn - +new Date() > this.expirationWindow,
+      this.tokens && this.tokens.expiresIn - +new Date() > this.expirationWindow,
     );
   }
 
@@ -105,17 +104,14 @@ export class SimpleOAuthHandler extends EventTarget {
         config.url?.startsWith(this.protectedAPI) ||
         (config.url?.startsWith("/") && config.baseURL === this.protectedAPI);
 
-      if (!isRequestToProtectedAPI || config.authorization === false)
-        return config;
+      if (!isRequestToProtectedAPI || config.authorization === false) return config;
 
       // Don't handle this error
       if (!this.accessTokenIsValid) await this.refreshToken();
 
       // Useless line, as refreshTokens will throw if failed
       if (!this.tokens)
-        throw new Error(
-          "Unauthorized request: No tokens (unexpected behaviour)",
-        );
+        throw new Error("Unauthorized request: No tokens (unexpected behaviour)");
 
       config.headers.set(
         "Authorization ",
@@ -150,8 +146,7 @@ export class SimpleOAuthHandler extends EventTarget {
 
     try {
       const newTokens = toCamelCase(await this.options.login(this));
-      if (newTokens)
-        this.storeTokens(this.concatTokens(newTokens, this.tokens));
+      if (newTokens) this.storeTokens(this.concatTokens(newTokens, this.tokens));
     } catch (error) {
       this.clearTokens();
       throw error; // forward the error

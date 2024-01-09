@@ -26,9 +26,7 @@ const Main = () => {
 
   const { toast } = useToast();
 
-  const Header = (
-    <div className="text-3xl text-center select-none">𝕸𝖆𝖟𝖊𝖓 𝕽𝖊𝖈𝖔𝖗𝖉𝖘</div>
-  );
+  const Header = <div className="text-3xl text-center select-none">𝕸𝖆𝖟𝖊𝖓 𝕽𝖊𝖈𝖔𝖗𝖉𝖘</div>;
 
   return (
     <SimpleLayout HeaderContent={Header}>
@@ -37,9 +35,7 @@ const Main = () => {
         data={visits}
         onDownloadClicked={async () => {
           const csv = stateToCSV({ visits, brands });
-          const suffix = new Date()
-            .toLocaleString()
-            .replace(/[/\\?%*:|"<>]/g, "-");
+          const suffix = new Date().toLocaleString().replace(/[/\\?%*:|"<>]/g, "-");
           const path = await writeFile(`data at ${suffix}.csv`, csv);
           toast({
             description: `Downloaded as ${decodeURIComponent(path)}`,

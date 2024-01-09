@@ -154,8 +154,7 @@ export const getToken = async (tokenRequest: OAuthTokenRequest) => {
     params.append("code", tokenRequest.code);
     params.append("redirect_uri", tokenRequest.redirectUri);
 
-    if (tokenRequest.codeVerifier)
-      throw new Error("Implemented flow for code_verifier");
+    if (tokenRequest.codeVerifier) throw new Error("Implemented flow for code_verifier");
   } else if (grantType === "refresh_token") {
     params.append("refresh_token", tokenRequest.refreshToken);
   } else {

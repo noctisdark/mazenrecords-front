@@ -72,8 +72,9 @@ const DataContext = createContext({});
 const DataProvider = ({ children }) => {
   const { toast } = useToast();
   const { offlineMode, isOffline } = useAuth();
-  const { dbReady, getAll, add, upsert, remove, softRemove, transaction } =
-    useIndexedDB<string | number>();
+  const { dbReady, getAll, add, upsert, remove, softRemove, transaction } = useIndexedDB<
+    string | number
+  >();
 
   const isFirstRender = useRef(true);
 
@@ -96,7 +97,6 @@ const DataProvider = ({ children }) => {
     onProgress,
   }: RefreshOptions = {}) => {
     try {
-      console.log(showLoading)
       if (showLoading) setLoading(true);
 
       let visits: Visit[] = [],
@@ -283,8 +283,8 @@ const DataProvider = ({ children }) => {
   };
 
   useEffectOnce(() => {
-    if ( !dbReady ) return;
-    if ( offlineMode || !isOffline )
+    if (!dbReady) return;
+    if (offlineMode || !isOffline)
       refreshWithProgress({ showLoading: isFirstRender.current });
   }, [dbReady, isOffline, offlineMode]);
 
@@ -346,18 +346,15 @@ const DataProvider = ({ children }) => {
       const timestamp = +new Date();
       newVisit = { ...visit, updatedAt: timestamp };
 
-      await transaction(
-        { storeNames: ["visits"], mode: "readwrite" },
-        (transaction) => {
-          softRemove({
-            transaction,
-            storeName: "visits",
-            key: oldId,
-            timestamp,
-          });
-          add({ transaction, storeName: "visits", data: newVisit });
-        },
-      );
+      await transaction({ storeNames: ["visits"], mode: "readwrite" }, (transaction) => {
+        softRemove({
+          transaction,
+          storeName: "visits",
+          key: oldId,
+          timestamp,
+        });
+        add({ transaction, storeName: "visits", data: newVisit });
+      });
     } else {
       // TODO: replace with a transaction on the server
       [, newVisit] = await Promise.all([
@@ -365,13 +362,10 @@ const DataProvider = ({ children }) => {
         createVisit({ visit }),
       ]);
 
-      await transaction(
-        { storeNames: ["visits"], mode: "readwrite" },
-        (transaction) => {
-          remove({ transaction, storeName: "visits", key: oldId });
-          add({ transaction, storeName: "visits", data: newVisit });
-        },
-      );
+      await transaction({ storeNames: ["visits"], mode: "readwrite" }, (transaction) => {
+        remove({ transaction, storeName: "visits", key: oldId });
+        add({ transaction, storeName: "visits", data: newVisit });
+      });
 
       setLastEpoch(newVisit.updatedAt!);
     }
@@ -574,15 +568,11 @@ const DataProvider = ({ children }) => {
       <Alert variant="destructive">
         <AlertCircle />
         <AlertTitle>Error loading data</AlertTitle>
-        <AlertDescription>
-          Error while loading data {error.toString()}.
-        </AlertDescription>
+        <AlertDescription>Error while loading data {error.toString()}.</AlertDescription>
       </Alert>
     );
 
-  return (
-    <DataContext.Provider value={dataContext}>{children}</DataContext.Provider>
-  );
+  return <DataContext.Provider value={dataContext}>{children}</DataContext.Provider>;
 };
 
 export default DataProvider;

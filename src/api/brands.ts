@@ -5,26 +5,20 @@ import { Update } from "@/utils/types";
 
 import api from ".";
 
-const unwrapBrand = (
-  response: Promise<AxiosResponse>,
-): Promise<Update<string, Brand>> =>
+const unwrapBrand = (response: Promise<AxiosResponse>): Promise<Update<string, Brand>> =>
   response.then((r) => JSONToBrand(r.data.brand));
 
 export const getBrand = ({ id }: { id: Brand["id"] }) =>
   unwrapBrand(api.get(`/brands/${id}`));
 
 export const createBrand = ({ brand }: { brand: Brand }) =>
-  unwrapBrand(
-    api.post("/brands", { brand: brandToJSON(brand) }),
-  ) as Promise<Brand>;
+  unwrapBrand(api.post("/brands", { brand: brandToJSON(brand) })) as Promise<Brand>;
 
 /**
  * This is actually an upsert method
  */
 export const updateBrand = ({ brand }: { brand: Brand }) =>
-  unwrapBrand(
-    api.patch("/brands", { brand: brandToJSON(brand) }),
-  ) as Promise<Brand>;
+  unwrapBrand(api.patch("/brands", { brand: brandToJSON(brand) })) as Promise<Brand>;
 
 /**
  * Soft delete on server
