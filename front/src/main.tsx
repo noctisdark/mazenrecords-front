@@ -12,7 +12,7 @@ if (platform === "web") {
     const code = openURL.searchParams.get("code");
     window.opener.postMessage(
       { source: "/callback", code },
-      import.meta.env.VITE_DEV_ORIGIN,
+      window.location.origin,
     );
     window.close();
   }

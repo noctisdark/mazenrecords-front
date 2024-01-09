@@ -3,7 +3,7 @@ import { SimpleOAuthHandler } from "@/utils/oauth/handler";
 
 // Don't use redirect uri
 
-const webBaseURL = `${import.meta.env.VITE_DEV_ORIGIN}`;
+const webBaseURL = `${window.location.origin}`;
 
 export const login = async (instance: SimpleOAuthHandler) => {
   const url = getLoginURL({
@@ -29,7 +29,7 @@ export const login = async (instance: SimpleOAuthHandler) => {
     };
 
     const onMessage = (e: MessageEvent) => {
-      if (e.origin !== import.meta.env.VITE_DEV_ORIGIN) return;
+      if (e.origin !== webBaseURL) return;
       if (e.data.source !== "/callback") return;
 
       removeEventListeners();
