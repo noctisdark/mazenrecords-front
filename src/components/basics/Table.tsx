@@ -52,6 +52,10 @@ export const columns: ColumnDef<Visit>[] = [
         </span>
       );
     },
+    filterFn: (a, _, filterValue) => {
+      // custom filter for integer values
+      return a.original.id.toString().indexOf(filterValue) >= 0;
+    }
     // accessorFn: (original) => original.id
   },
   {

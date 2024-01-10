@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
     <string name="app_name">mazensapp</string>
-    <string name="title_activity_main">mazensapp</string>
+    <string name="title_activity_main">Mazen Records</string>
     <string name="package_name">dev.mazensapp.app</string>
     <string name="custom_url_scheme">https</string>
     <string name="custom_url_host">localhost</string>
