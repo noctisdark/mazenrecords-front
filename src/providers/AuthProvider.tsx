@@ -17,6 +17,7 @@ type AuthContextType = {
   isLoggedIn: boolean;
   isLoading: boolean;
   offlineMode: boolean;
+  isOnline: boolean;
   isOffline: boolean;
   logOut: () => void;
 };
@@ -43,7 +44,12 @@ const AuthProvider = ({ children }) => {
     oauthHandler.refreshTokenIsValid,
   );
 
-  const [networkStatus, forceOffline, offlineMode] = useNetworkStatus();
+  const networkStatus = useNetworkStatus();
+  const [offlineMode, setOfflineMode] = useState(false);
+
+  const isOnline = !offlineMode && networkStatus === "online";
+  const isOffline = !isOnline;
+
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -74,9 +80,14 @@ const AuthProvider = ({ children }) => {
     }
   };
 
-  const refreshAccess = async () => {
+  const autoLogin = async () => {
     try {
       setIsLoading(true);
+      toast({
+        title: "Authentication",
+        description: "Refreshing tokens...",
+        duration: 2000,
+      });
       await oauthHandler.refreshToken();
     } catch (error) {
       // quick toast to explain the delay
@@ -96,6 +107,7 @@ const AuthProvider = ({ children }) => {
           </Button>
         ),
       });
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -113,20 +125,9 @@ const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const autoRefreshSession = !isLoggedIn && hasRefreshToken && networkStatus === "online";
-
+  const autoRefreshSession = isOnline && !isLoggedIn && hasRefreshToken;
   useEffectOnce(() => {
-    if (autoRefreshSession) {
-      setTimeout(() => {
-        toast({
-          title: "Authentication",
-          description: "Refreshing tokens...",
-          duration: 2000,
-        });
-      }, 0);
-
-      refreshAccess();
-    }
+    if (autoRefreshSession) setTimeout(autoLogin, 0); // Show the toast correctly
   }, [autoRefreshSession]);
 
   // customize
@@ -134,28 +135,29 @@ const AuthProvider = ({ children }) => {
     isLoggedIn,
     isLoading,
     offlineMode,
-    isOffline: networkStatus === "offline",
+    isOnline,
+    isOffline,
     logOut: () => {
       if (isLoggedIn) oauthHandler.revokeToken();
-      forceOffline(false);
+      setOfflineMode(false);
     },
   };
 
-  if (isLoading) return <LoadingOverlay className="h-10 w-10" />;
-  if (!offlineMode && !isLoggedIn)
+  //* Wait for network status to load
+  if (!networkStatus || isLoading) return <LoadingOverlay className="h-10 w-10" />;
+  if (!hasRefreshToken && !offlineMode)
     return (
       <Overlay>
         <div className="flex flex-col gap-y-2">
-          <Button size="lg" onClick={onLogin}>
+          <Button size="lg" onClick={onLogin} disabled={isOffline}>
             Login with Cognito
           </Button>
-          <Button variant="secondary" size="lg" onClick={() => forceOffline(true)}>
+          <Button variant="secondary" size="lg" onClick={() => setOfflineMode(true)}>
             Continue in offline mode
           </Button>
         </div>
       </Overlay>
     );
-
   return <AuthContext.Provider value={authContext}>{children}</AuthContext.Provider>;
 };
 

@@ -1,5 +1,6 @@
 import { SafeArea } from "capacitor-plugin-safe-area";
 import { useEffect, useState } from "react";
+import { useAsyncEffect } from "./hacks";
 
 export type SafeAreaInsets = {
   left: number;
@@ -11,21 +12,15 @@ export type SafeAreaInsets = {
 export const useSafeAreaInsets = () => {
   const [safeAreaInsets, setSafeAreaInsets] = useState<SafeAreaInsets>();
 
-  useEffect(() => {
-    let eventListener;
-    const onSafeAreaChanged = async (data) => {
+  useAsyncEffect(async () => {
+    const { insets } = await SafeArea.getSafeAreaInsets();
+    setSafeAreaInsets(insets);
+    let eventListener = await SafeArea.addListener("safeAreaChanged", (data) => {
       const { insets } = data;
       setSafeAreaInsets(insets);
-    };
-
-    (async () => {
-      const { insets } = await SafeArea.getSafeAreaInsets();
-      setSafeAreaInsets(insets);
-      eventListener = await SafeArea.addListener("safeAreaChanged", onSafeAreaChanged);
-    })();
-
+    });
     return () => {
-      eventListener?.remove();
+      eventListener.remove();
     };
   }, []);
 

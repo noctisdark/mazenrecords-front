@@ -29,9 +29,6 @@ import { objectIsDeleted } from "@/utils/types";
 import { useAuth } from "./AuthProvider";
 import { useIndexedDB } from "./IndexedDBProvider";
 
-//! Careful: maybe we need to use PUT instead of ADD because of the deleted records in offline mode
-
-//TODO: refactor this shitty file
 type Progress = { description: string; progress?: number; done?: boolean };
 type RefreshOptions = {
   fromZero?: boolean;
@@ -72,7 +69,7 @@ const DataContext = createContext({});
 
 const DataProvider = ({ children }) => {
   const { toast } = useToast();
-  const { offlineMode, isOffline, logOut } = useAuth();
+  const { isOnline, isOffline, logOut } = useAuth();
   const { dbReady, getAll, add, upsert, remove, softRemove, transaction, clear } =
     useIndexedDB<string | number>();
 
@@ -266,8 +263,8 @@ const DataProvider = ({ children }) => {
         description: String(error),
       });
     } finally {
-      setLoading(false);
       isFirstRender.current = false;
+      setLoading(false);
     }
   };
 
@@ -298,9 +295,13 @@ const DataProvider = ({ children }) => {
 
   useEffectOnce(() => {
     if (!dbReady) return;
-    if (offlineMode || !isOffline)
-      refreshWithProgress({ showLoading: isFirstRender.current });
-  }, [dbReady, isOffline, offlineMode]);
+    refreshWithProgress({ showLoading: true });
+  }, [dbReady]);
+
+  // reload silently when back online
+  useEffectOnce(() => {
+    if (isOnline && !isFirstRender.current) refreshWithProgress({ showLoading: false });
+  }, [isOnline]);
 
   const hasVisit = (id: number) => findByIdSorted(visits, id) >= 0;
   const nextVisitId = +(visits.at(-1)?.id ?? 0) + 1;

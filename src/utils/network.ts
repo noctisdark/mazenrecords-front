@@ -1,28 +1,23 @@
-import { useEffect, useState } from "react";
+import { Network } from "@capacitor/network";
+import { useState } from "react";
 
-export const useNetworkStatus = (): [
-  "online" | "offline",
-  (setOffline: boolean) => void,
-  boolean,
-] => {
-  const [status, setStatus] = useState<"online" | "offline">(
-    navigator.onLine ? "online" : "offline",
-  );
+import { useAsyncEffect } from "./hacks";
 
-  const [forcedOffline, setForcedOffline] = useState(false);
+export const useNetworkStatus = (): "online" | "offline" | undefined => {
+  const [status, setStatus] = useState<"online" | "offline">();
 
-  useEffect(() => {
-    const onOnline = () => setStatus("online");
-    const onOffline = () => setStatus("offline");
+  useAsyncEffect(async () => {
+    const { connected } = await Network.getStatus();
+    setStatus(connected ? "online" : "offline");
 
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
+    let callback = await Network.addListener("networkStatusChange", ({ connected }) => {
+      setStatus(connected ? "online" : "offline");
+    });
 
     return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
+      callback.remove();
     };
   }, []);
 
-  return [forcedOffline ? "offline" : status, setForcedOffline, forcedOffline];
+  return status;
 };
